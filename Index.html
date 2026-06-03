@@ -1,0 +1,4547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Proposta Portugal — Tecnisa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #050608;
+        --ink: #f4f1ec;
+        --muted: rgba(244, 241, 236, 0.62);
+        --quiet: rgba(244, 241, 236, 0.42);
+        --line: rgba(244, 241, 236, 0.13);
+        --ease: cubic-bezier(0.2, 0.85, 0.2, 1);
+        --frame-side-pad: clamp(1.4rem, 3.6vw, 2.6rem);
+        --frame-top-pad: clamp(2rem, 7vh, 6rem);
+        --frame-bottom-pad: clamp(5.8rem, 12vh, 8rem);
+        --layout-scale: 1;
+        --title-scale: 1;
+        --body-scale: 1;
+        --ui-scale: 1;
+        --content-scale: 1;
+        --content-width-scale: 1;
+        color-scheme: dark;
+        font-family: "Manrope", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        min-height: 100dvh;
+        color: var(--ink);
+        background: #020203;
+      }
+
+      .presentation-shell {
+        position: relative;
+        isolation: isolate;
+        width: min(100vw, calc(100dvh * 16 / 9));
+        height: min(100dvh, calc(100vw * 9 / 16));
+        overflow: hidden;
+        border: 1px solid rgba(244, 241, 236, 0.08);
+        border-radius: clamp(0.6rem, 1.8vw, 1.4rem);
+        box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.42);
+        background:
+          radial-gradient(circle at 50% 14%, rgba(155, 162, 170, 0.18), transparent 28rem),
+          radial-gradient(circle at 82% 64%, rgba(120, 106, 91, 0.13), transparent 30rem),
+          linear-gradient(180deg, #070a0f 0%, #050608 42%, #020203 100%);
+      }
+
+      .presentation-shell::before {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        content: "";
+        background:
+          linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.04) 46%, transparent 52%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%);
+        opacity: 0.45;
+      }
+
+      .grain,
+      .vignette {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .grain {
+        z-index: 6;
+        opacity: 0.055;
+        mix-blend-mode: soft-light;
+        background-image:
+          repeating-radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.7) 0 0.03rem, transparent 0.04rem 0.24rem),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.18) 0 0.02rem, transparent 0.03rem 0.22rem);
+      }
+
+      .vignette {
+        z-index: 7;
+        background:
+          radial-gradient(circle at center, transparent 0 46%, rgba(0, 0, 0, 0.42) 78%, rgba(0, 0, 0, 0.84) 100%),
+          linear-gradient(180deg, rgba(0, 0, 0, 0.38), transparent 18%, transparent 76%, rgba(0, 0, 0, 0.55));
+      }
+
+      .visual-stage {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      #orbCanvas {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+      }
+
+      .stage-light {
+        position: absolute;
+        left: 50%;
+        z-index: 3;
+        pointer-events: none;
+        transform: translateX(-50%);
+      }
+
+      .stage-light--top {
+        top: -12rem;
+        width: 44rem;
+        height: 26rem;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(244, 241, 236, 0.14), transparent 66%);
+        filter: blur(1.8rem);
+      }
+
+      .stage-light--floor {
+        bottom: 2rem;
+        width: 34rem;
+        height: 8rem;
+        border-radius: 50%;
+        background: radial-gradient(ellipse, rgba(255, 255, 255, 0.09), transparent 68%);
+        filter: blur(1.2rem);
+      }
+
+      .brand {
+        position: absolute;
+        top: clamp(1.1rem, 3vh, 1.5rem);
+        left: var(--frame-side-pad);
+        z-index: 40;
+        display: inline-flex;
+        align-items: center;
+        gap: calc(0.62rem * var(--ui-scale));
+        color: rgba(244, 241, 236, 0.74);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: calc(0.52rem * var(--ui-scale));
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .brand-mark {
+        width: 1.05rem;
+        height: 1.05rem;
+        border-radius: 50%;
+        background: radial-gradient(circle at 36% 26%, #ffffff 0 13%, #f1eee8 24%, #b8b4ad 56%, #5a5650 100%);
+        box-shadow: 0 0 1.6rem rgba(255, 255, 255, 0.4);
+      }
+
+      .deck-foot {
+        position: absolute;
+        bottom: clamp(1rem, 3vh, 1.6rem);
+        left: var(--frame-side-pad);
+        right: var(--frame-side-pad);
+        z-index: 40;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        pointer-events: none;
+      }
+
+      .deck-dots {
+        justify-self: start;
+        display: inline-flex;
+        gap: 0.55rem;
+        pointer-events: auto;
+      }
+
+      .deck-counter {
+        justify-self: end;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: calc(0.52rem * var(--ui-scale));
+        letter-spacing: 0.14em;
+        color: rgba(244, 241, 236, 0.5);
+      }
+
+      .deck-counter b {
+        color: rgba(244, 241, 236, 0.92);
+        font-weight: 500;
+      }
+
+      .deck-nav {
+        justify-self: center;
+        display: inline-flex;
+        gap: 0.55rem;
+        pointer-events: auto;
+      }
+
+      .deck-nav-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: calc(0.55rem * var(--ui-scale));
+        padding: calc(0.58rem * var(--ui-scale)) calc(1.1rem * var(--ui-scale));
+        border: 1px solid rgba(244, 241, 236, 0.2);
+        border-radius: 999rem;
+        background: transparent;
+        color: rgba(244, 241, 236, 0.74);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: calc(0.5rem * var(--ui-scale));
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: color 0.35s var(--ease), border-color 0.35s var(--ease), background 0.35s var(--ease);
+      }
+
+      .deck-nav-btn:hover {
+        border-color: rgba(244, 241, 236, 0.46);
+        color: rgba(244, 241, 236, 0.96);
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .deck-nav-btn[hidden] {
+        display: none;
+      }
+
+      .deck-nav-btn .arrow {
+        font-family: "Manrope", sans-serif;
+        font-size: 0.95rem;
+        letter-spacing: 0;
+        opacity: 0.78;
+        transform: translateY(-0.05rem);
+      }
+
+      .deck-dot {
+        width: calc(1.7rem * var(--ui-scale));
+        height: calc(0.18rem * var(--ui-scale));
+        padding: 0;
+        border: 0;
+        border-radius: 999rem;
+        background: rgba(244, 241, 236, 0.16);
+        cursor: pointer;
+        transition: background 0.4s var(--ease), width 0.4s var(--ease);
+      }
+
+      .deck-dot:hover {
+        background: rgba(244, 241, 236, 0.34);
+      }
+
+      .deck-dot.is-active {
+        width: calc(2.6rem * var(--ui-scale));
+        background: rgba(244, 241, 236, 0.82);
+      }
+
+      .deck-arrow {
+        position: absolute;
+        top: 50%;
+        z-index: 40;
+        display: grid;
+        place-items: center;
+        width: 2.6rem;
+        height: 2.6rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        background: rgba(7, 8, 10, 0.32);
+        color: rgba(244, 241, 236, 0.7);
+        cursor: pointer;
+        opacity: 0;
+        backdrop-filter: blur(0.6rem);
+        transform: translateY(-50%);
+        transition: opacity 0.4s var(--ease), background 0.4s var(--ease), color 0.4s var(--ease);
+      }
+
+      .presentation-shell:hover .deck-arrow {
+        opacity: 1;
+      }
+
+      .deck-arrow:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(244, 241, 236, 0.95);
+      }
+
+      .deck-arrow[disabled] {
+        opacity: 0 !important;
+        pointer-events: none;
+      }
+
+      .deck-arrow--prev {
+        left: clamp(0.85rem, 2vw, 1.5rem);
+      }
+
+      .deck-arrow--next {
+        right: clamp(0.85rem, 2vw, 1.5rem);
+      }
+
+      .deck {
+        position: relative;
+        z-index: 30;
+        height: 100%;
+      }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        align-items: center;
+        padding:
+          calc(var(--frame-top-pad) * var(--layout-scale))
+          max(calc(var(--frame-side-pad) * var(--layout-scale)), calc((100% - (76rem * var(--content-width-scale))) / 2))
+          calc(var(--frame-bottom-pad) * var(--layout-scale));
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 0.7s var(--ease), visibility 0.7s var(--ease);
+      }
+
+      .slide.is-active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      .slide[data-align="left"] {
+        justify-items: start;
+      }
+
+      .slide[data-align="center"] {
+        justify-items: center;
+        text-align: center;
+      }
+
+      .slide[data-align="right"] {
+        justify-items: end;
+      }
+
+      .slide[data-type="frentes"] {
+        align-items: start;
+      }
+
+      .copy {
+        position: relative;
+        z-index: 30;
+        width: min(calc(34rem * var(--content-width-scale)), 100%);
+        text-shadow: 0 1.3rem 4rem rgba(0, 0, 0, 0.92), 0 0 1.4rem rgba(0, 0, 0, 0.58);
+      }
+
+      .slide[data-align="center"] .copy {
+        width: min(calc(42rem * var(--content-width-scale)), 100%);
+      }
+
+      .copy > * {
+        opacity: 0;
+        filter: blur(0.18rem);
+        transform: translateY(1rem);
+        transition: opacity 0.85s var(--ease), filter 0.85s var(--ease), transform 0.85s var(--ease);
+      }
+
+      .slide.is-active .copy > * {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+      }
+
+      .slide.is-active .copy > *:nth-child(1) {
+        transition-delay: 0.12s;
+      }
+
+      .slide.is-active .copy > *:nth-child(2) {
+        transition-delay: 0.22s;
+      }
+
+      .slide.is-active .copy > *:nth-child(3) {
+        transition-delay: 0.32s;
+      }
+
+      .slide.is-active .copy > *:nth-child(4) {
+        transition-delay: 0.42s;
+      }
+
+      .eyebrow {
+        margin: 0 0 1.15rem;
+        color: rgba(244, 241, 236, 0.48);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: calc(0.48rem * var(--ui-scale));
+        font-weight: 500;
+        letter-spacing: calc(0.15em * var(--ui-scale));
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+        font-weight: 500;
+        text-wrap: balance;
+      }
+
+      h1 {
+        max-width: 13ch;
+        font-size: calc(4.65rem * var(--title-scale));
+        line-height: 0.94;
+        letter-spacing: -0.055em;
+      }
+
+      .slide[data-type="cover"] h1 {
+        max-width: none;
+        font-size: clamp(2.2rem, 5.5vw, 9rem) !important;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        font-weight: 400;
+      }
+
+      h2 {
+        max-width: 16ch;
+        font-size: calc(3.2rem * var(--title-scale));
+        line-height: 0.98;
+        letter-spacing: -0.045em;
+      }
+
+      .slide[data-align="center"] h1,
+      .slide[data-align="center"] h2,
+      .slide[data-align="center"] .copy p {
+        margin-inline: auto;
+      }
+
+      .copy p {
+        margin: calc(1.5rem * var(--body-scale)) 0 0;
+        max-width: 40rem;
+        color: var(--muted);
+        font-size: calc(1.03rem * var(--body-scale));
+        font-weight: 400;
+        line-height: calc(1.75 * var(--body-scale));
+      }
+
+      .index-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.1rem;
+      }
+
+      .index-list span {
+        display: flex;
+        align-items: baseline;
+        gap: 0.85rem;
+        padding: 0.42rem 0;
+        color: rgba(244, 241, 236, 0.86);
+        font-size: 2.35rem;
+        font-weight: 400;
+        letter-spacing: -0.035em;
+        line-height: 1.1;
+      }
+
+      .mark,
+      .index-list .mark {
+        color: rgba(244, 241, 236, 0.34);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.95rem;
+        font-weight: 500;
+        letter-spacing: 0;
+      }
+
+      .index-list .mark {
+        transform: translateY(-0.35rem);
+      }
+
+      .meta-line {
+        margin-top: calc(1.6rem * var(--content-scale));
+        padding-top: calc(1rem * var(--content-scale));
+        border-top: 1px solid var(--line);
+        color: rgba(244, 241, 236, 0.7);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: calc(0.48rem * var(--ui-scale));
+        letter-spacing: 0.1em;
+        line-height: 1.65;
+        text-transform: uppercase;
+      }
+
+      .copy[data-type="manifesto"],
+      .copy[data-type="stats"],
+      .copy[data-type="gallery"],
+      .copy[data-type="process"] {
+        width: min(calc(44rem * var(--content-width-scale)), 100%);
+      }
+
+      .copy[data-type="content"],
+      .copy[data-type="pricing"] {
+        width: min(calc(44rem * var(--content-width-scale)), 100%);
+      }
+
+      .slide[data-type="gallery"] .copy {
+        width: min(calc(76rem * var(--content-width-scale)), 100%);
+      }
+
+      .pillar-grid,
+      .stats-grid,
+      .gallery-grid,
+      .process-steps,
+      .content-list,
+      .pricing-list {
+        margin-top: calc(1.8rem * var(--content-scale));
+      }
+
+      .pillar-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.9rem;
+      }
+
+      .pillar-grid--three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .pillar-card,
+      .process-step,
+      .stat-card,
+      .gallery-item,
+      .pricing-row {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(0.5rem);
+      }
+
+      .pillar-card {
+        min-height: 8rem;
+        padding: 1rem 1.05rem 0.95rem;
+      }
+
+      .pillar-card strong,
+      .process-step strong {
+        display: block;
+        color: rgba(244, 241, 236, 0.96);
+        font-size: 1rem;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+
+      .pillar-card p,
+      .process-step p {
+        margin: 0.6rem 0 0;
+        font-size: 0.92rem;
+        line-height: 1.55;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.9rem;
+      }
+
+      .stat-card {
+        min-height: 9.4rem;
+        padding: 1rem 1rem 0.95rem;
+      }
+
+      .stat-card strong {
+        display: block;
+        color: rgba(255, 255, 255, 0.98);
+        font-size: clamp(2.4rem, 5vw, 3.8rem);
+        font-weight: 500;
+        line-height: 0.92;
+        letter-spacing: -0.06em;
+      }
+
+      .stat-card span {
+        display: block;
+        margin-top: 0.7rem;
+        color: rgba(244, 241, 236, 0.68);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        line-height: 1.55;
+        text-transform: uppercase;
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 0.75rem 0.9rem;
+        align-items: center;
+      }
+
+      .gallery-item {
+        padding: 0.95rem 1rem;
+        color: rgba(244, 241, 236, 0.76);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.76rem;
+        letter-spacing: 0.1em;
+        line-height: 1.5;
+        text-transform: uppercase;
+      }
+
+      .gallery-item.gallery-item--logo {
+        min-height: 5.2rem;
+        padding: 0.45rem 0.35rem;
+        display: grid;
+        place-items: center;
+        border: none;
+        background: transparent;
+        backdrop-filter: none;
+        box-shadow: none;
+      }
+
+      .gallery-item.gallery-item--logo img {
+        display: block;
+        max-width: 100%;
+        max-height: 3.6rem;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 0.35rem 0.8rem rgba(0, 0, 0, 0.35));
+      }
+
+      .process-steps {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+      }
+
+      .process-step {
+        position: relative;
+        padding: 1rem 1rem 0.9rem;
+      }
+
+      .process-step::before {
+        content: attr(data-step);
+        display: inline-block;
+        margin-bottom: 0.7rem;
+        color: rgba(244, 241, 236, 0.44);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.18em;
+      }
+
+      /* Scrollable content wrapper */
+      .content-scroll-wrap {
+        position: relative;
+        margin-top: calc(1.8rem * var(--content-scale));
+        padding-left: 1.1rem;
+      }
+
+      /* Custom left scrollbar track */
+      .content-scroll-track {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(244, 241, 236, 0.1);
+        border-radius: 999rem;
+        overflow: hidden;
+      }
+
+      .content-scroll-thumb {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(244, 241, 236, 0.72);
+        border-radius: 999rem;
+        transition: top 0.1s linear, height 0.1s linear, opacity 0.3s ease;
+        min-height: 2rem;
+      }
+
+      .content-scroll-thumb.is-hidden {
+        opacity: 0;
+      }
+
+      .content-scroll-inner {
+        max-height: clamp(22rem, 54vh, 32rem);
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding-right: 0.25rem;
+      }
+
+      .content-scroll-inner::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Bottom fade + indicator */
+      .content-scroll-fade {
+        position: absolute;
+        bottom: 0;
+        left: 1.1rem;
+        right: 0;
+        height: 6rem;
+        pointer-events: none;
+        background: linear-gradient(to bottom, transparent 0%, rgba(5, 6, 8, 0.85) 60%, rgba(5, 6, 8, 0.97) 100%);
+        transition: opacity 0.35s ease;
+      }
+
+      .content-scroll-fade.is-hidden {
+        opacity: 0;
+      }
+
+      .content-scroll-more {
+        position: absolute;
+        bottom: 0.75rem;
+        left: 1.1rem;
+        right: 0;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        transition: opacity 0.35s ease;
+      }
+
+      .content-scroll-more-btn {
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      .content-scroll-more-btn:hover {
+        border-color: rgba(244, 241, 236, 0.52);
+        color: rgba(244, 241, 236, 0.88);
+      }
+
+      .content-scroll-more.is-hidden {
+        opacity: 0;
+      }
+
+      .content-scroll-more-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.38rem 0.9rem;
+        border: 1px solid rgba(244, 241, 236, 0.28);
+        border-radius: 999rem;
+        background: rgba(5, 6, 8, 0.72);
+        backdrop-filter: blur(0.5rem);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.44rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(244, 241, 236, 0.62);
+      }
+
+      .content-scroll-more-btn svg {
+        width: 0.65rem;
+        height: 0.65rem;
+        opacity: 0.7;
+        animation: scrollBounce 1.6s ease-in-out infinite;
+        flex-shrink: 0;
+      }
+
+      @keyframes scrollBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(3px); }
+      }
+
+      .content-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: calc(0.7rem * var(--content-scale));
+      }
+
+      .content-list li {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: calc(0.85rem * var(--content-scale));
+        align-items: start;
+        padding-top: calc(0.7rem * var(--content-scale));
+        border-top: 1px solid rgba(244, 241, 236, 0.08);
+        color: rgba(244, 241, 236, 0.88);
+        font-size: calc(1rem * var(--body-scale));
+        line-height: calc(1.6 * var(--body-scale));
+      }
+
+      .content-list li:first-child {
+        border-top: 1px solid rgba(244, 241, 236, 0.16);
+      }
+
+      /* Hierarchy: header item */
+      .content-list li.is-header {
+        margin-top: calc(0.5rem * var(--content-scale));
+        padding-top: calc(0.85rem * var(--content-scale));
+        border-top: 1px solid rgba(244, 241, 236, 0.22);
+        color: rgba(244, 241, 236, 0.98);
+        font-size: calc(1.02rem * var(--body-scale));
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        grid-template-columns: 1fr;
+      }
+
+      .content-list li.is-header:first-child {
+        margin-top: 0;
+        border-top: 1px solid rgba(244, 241, 236, 0.28);
+      }
+
+      /* Hierarchy: sub item */
+      .content-list li.is-sub {
+        padding-left: calc(1rem * var(--content-scale));
+        border-top: 1px solid rgba(244, 241, 236, 0.04);
+        color: rgba(244, 241, 236, 0.62);
+        font-size: calc(0.9rem * var(--body-scale));
+        grid-template-columns: 1fr;
+      }
+
+      .content-list li.is-sub:first-child {
+        border-top: 1px solid rgba(244, 241, 236, 0.04);
+      }
+
+      .content-list .mark {
+        font-size: calc(0.52rem * var(--ui-scale));
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .pricing-list {
+        display: grid;
+        gap: calc(0.55rem * var(--content-scale));
+      }
+
+      .pricing-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: calc(1rem * var(--content-scale));
+        align-items: baseline;
+        padding: calc(0.9rem * var(--content-scale)) calc(1rem * var(--content-scale));
+      }
+
+      .pricing-row strong {
+        color: rgba(244, 241, 236, 0.92);
+        font-size: calc(1rem * var(--body-scale));
+        font-weight: 500;
+        line-height: calc(1.4 * var(--body-scale));
+      }
+
+      .pricing-row span {
+        color: rgba(255, 255, 255, 0.96);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: calc(0.62rem * var(--ui-scale));
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .copy[data-type="closing"] h1 {
+        max-width: none;
+      }
+
+      .orientation-lock {
+        position: fixed;
+        inset: 0;
+        z-index: 120;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background:
+          radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.09), transparent 24rem),
+          linear-gradient(180deg, rgba(7, 10, 15, 0.96), rgba(2, 2, 3, 0.98));
+      }
+
+      .orientation-lock__card {
+        width: min(100%, 24rem);
+        padding: 1.4rem 1.3rem 1.35rem;
+        border: 1px solid rgba(244, 241, 236, 0.12);
+        border-radius: 1.3rem;
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 1.4rem 3.2rem rgba(0, 0, 0, 0.32);
+        text-align: center;
+      }
+
+      .orientation-lock__icon {
+        display: grid;
+        place-items: center;
+        width: 5.8rem;
+        height: 5.8rem;
+        margin: 0 auto 1.1rem;
+        border-radius: 50%;
+        border: 1px solid rgba(244, 241, 236, 0.12);
+        background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+      }
+
+      .orientation-lock__icon svg {
+        width: 3.4rem;
+        height: 3.4rem;
+      }
+
+      .orientation-lock__eyebrow {
+        margin: 0;
+        color: rgba(244, 241, 236, 0.52);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.48rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .orientation-lock h2 {
+        max-width: none;
+        margin: 0.85rem 0 0;
+        font-size: clamp(1.8rem, 8vw, 2.4rem);
+        line-height: 0.96;
+        letter-spacing: -0.04em;
+      }
+
+      .orientation-lock p:last-child {
+        margin: 0.95rem 0 0;
+        color: rgba(244, 241, 236, 0.72);
+        font-size: 0.96rem;
+        line-height: 1.65;
+      }
+
+      body.is-orientation-locked .orientation-lock {
+        display: flex;
+      }
+
+      body.is-orientation-locked .presentation-shell {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      @media (max-aspect-ratio: 1.45), (max-width: 820px), (max-height: 520px) {
+        /* Shell */
+        .presentation-shell {
+          width: 100vw;
+          height: 100dvh;
+          border-radius: 0;
+          border: none;
+          box-shadow: none;
+        }
+
+        /* Brand */
+        .brand {
+          top: 1rem;
+          left: 1.2rem;
+          font-size: 0.58rem;
+          letter-spacing: 0.16em;
+        }
+
+        /* Bottom navigation */
+        .deck-foot {
+          bottom: 1rem;
+          left: 1.2rem;
+          right: 1.2rem;
+          grid-template-columns: auto 1fr auto;
+          grid-template-rows: auto auto;
+          row-gap: 0.7rem;
+        }
+
+        .deck-nav {
+          grid-column: 1 / -1;
+          grid-row: 1;
+          justify-self: center;
+          gap: 0.7rem;
+        }
+
+        .deck-nav-btn {
+          padding: 0.6rem 1.3rem;
+          font-size: 0.6rem;
+          border-radius: 999rem;
+          min-height: 2.4rem;
+        }
+
+        .deck-dots {
+          grid-row: 2;
+          grid-column: 1;
+        }
+
+        .deck-counter {
+          grid-row: 2;
+          grid-column: 3;
+          font-size: 0.55rem;
+        }
+
+        .deck-arrow {
+          display: none;
+        }
+
+        /* Slides: default (cover/section/closing) — conteúdo embaixo */
+        .slide {
+          padding: 3.6rem 1.4rem 6.8rem;
+          align-items: end;
+        }
+
+        /* Slides com muito conteúdo — alinhar ao topo */
+        .slide[data-type="content"],
+        .slide[data-type="manifesto"],
+        .slide[data-type="stats"],
+        .slide[data-type="gallery"],
+        .slide[data-type="squad"] {
+          align-items: start;
+          padding-top: 3.6rem;
+        }
+
+        .copy {
+          width: 100%;
+        }
+
+        /* Tipografia */
+        .eyebrow {
+          margin-bottom: 0.75rem;
+          font-size: 0.6rem;
+          letter-spacing: 0.2em;
+        }
+
+        h1 {
+          max-width: 15ch;
+          font-size: clamp(2.2rem, 10vw, 3rem);
+          line-height: 0.96;
+        }
+
+        h2 {
+          max-width: 18ch;
+          font-size: clamp(1.6rem, 7.5vw, 2.4rem);
+          line-height: 1;
+        }
+
+        .copy p {
+          margin-top: 1rem;
+          font-size: 0.94rem;
+          line-height: 1.68;
+        }
+
+        /* Índice */
+        .index-list span {
+          gap: 0.7rem;
+          padding: 0.28rem 0;
+          font-size: clamp(1.4rem, 6.5vw, 1.9rem);
+        }
+
+        .index-list .mark {
+          font-size: 0.78rem;
+          transform: translateY(-0.22rem);
+        }
+
+        .meta-line {
+          margin-top: 1rem;
+          font-size: 0.6rem;
+        }
+
+        /* Grids */
+        .pillar-grid,
+        .pillar-grid--three,
+        .process-steps {
+          grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .gallery-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 0.55rem 0.65rem;
+        }
+
+        .pillar-card,
+        .stat-card,
+        .process-step,
+        .gallery-item,
+        .pricing-row {
+          padding: 0.85rem;
+        }
+
+        /* Listas de conteúdo */
+        .content-list li {
+          gap: 0.65rem;
+          font-size: 0.9rem;
+          line-height: 1.55;
+        }
+
+        .content-list li.is-header {
+          font-size: 0.94rem;
+          padding-top: 0.75rem;
+          margin-top: 0.3rem;
+        }
+
+        .content-list li.is-sub {
+          font-size: 0.82rem;
+          padding-left: 0.8rem;
+        }
+
+        /* Área de scroll — usar altura disponível da tela */
+        .content-scroll-inner {
+          max-height: calc(100dvh - 10.5rem);
+        }
+
+        /* Botão scroll maior para toque */
+        .content-scroll-more-btn {
+          padding: 0.55rem 1.2rem;
+          font-size: 0.5rem;
+          min-height: 2.2rem;
+        }
+
+        .pricing-row {
+          grid-template-columns: 1fr;
+          gap: 0.3rem;
+        }
+
+        /* Frentes */
+        .frentes-grid {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+
+        .frentes-col {
+          padding: 1.1rem 1.3rem;
+          min-height: auto;
+          flex-direction: row;
+          justify-content: flex-start;
+          align-items: center;
+          gap: 1.4rem;
+          text-align: left;
+        }
+
+        .frentes-col::before {
+          left: 1rem;
+          right: 1rem;
+          top: 0;
+          bottom: auto;
+          width: auto;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(244, 241, 236, 0.14), transparent);
+        }
+
+        .frentes-canvas-container {
+          margin-bottom: 0;
+          width: 3.4rem;
+          height: 3.4rem;
+          flex-shrink: 0;
+        }
+
+        .frentes-col-title {
+          margin: 0;
+          font-size: 1rem;
+          width: 6.4rem;
+          flex-shrink: 0;
+        }
+
+        .frentes-col-list {
+          flex-direction: row;
+          display: flex;
+          gap: 0.65rem;
+          flex-wrap: wrap;
+          text-align: left;
+        }
+
+        .frentes-intro {
+          max-width: 28rem;
+          font-size: 0.88rem;
+        }
+
+        /* Squad/organização */
+        .squad-stage {
+          padding: 1.2rem 1.1rem 1.3rem;
+        }
+      }
+
+      .copy[data-type="frentes"] {
+        width: min(76rem, 100%);
+        text-shadow: none;
+      }
+
+      .frentes-container {
+        width: 100%;
+        max-width: 76rem;
+        margin: 0 auto;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(1.5rem);
+        transition: opacity 0.85s var(--ease), transform 0.85s var(--ease);
+      }
+
+      .slide.is-active .frentes-container {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .frentes-container h2 {
+        max-width: none;
+        font-size: clamp(2.1rem, 5vw, 2.8rem);
+        margin: 0;
+        font-weight: 500;
+        letter-spacing: -0.045em;
+        line-height: 1.02;
+      }
+
+      .frentes-intro {
+        max-width: 34rem;
+        margin: 1rem auto 0;
+        color: rgba(244, 241, 236, 0.64);
+        font-size: 0.96rem;
+        line-height: 1.7;
+      }
+
+      .frentes-grid {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0;
+        margin-top: 2.4rem;
+        border-top: 1px solid rgba(244, 241, 236, 0.08);
+        border-bottom: 1px solid rgba(244, 241, 236, 0.08);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01) 18%, rgba(0, 0, 0, 0) 100%);
+        overflow: hidden;
+      }
+
+      .frentes-grid::before {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        content: "";
+        background:
+          radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.06), transparent 46%),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03), transparent 8%, transparent 92%, rgba(255, 255, 255, 0.03));
+        opacity: 0.55;
+      }
+
+      .frentes-col {
+        position: relative;
+        min-height: 22rem;
+        padding: 2rem 1rem 1.55rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.014), rgba(255, 255, 255, 0.006) 26%, rgba(0, 0, 0, 0) 100%);
+        opacity: 0;
+        transform: translateY(1rem);
+        transition:
+          opacity 0.75s var(--ease),
+          transform 0.75s var(--ease),
+          background 0.4s var(--ease);
+      }
+
+      .slide.is-active .frentes-col {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: calc(0.2s + (var(--col-index) * 0.08s));
+      }
+
+      .frentes-col::before {
+        position: absolute;
+        left: 0;
+        top: 8%;
+        bottom: 8%;
+        width: 1px;
+        content: "";
+        background: linear-gradient(180deg, transparent, rgba(244, 241, 236, 0.14), transparent);
+      }
+
+      .frentes-col:first-child::before {
+        display: none;
+      }
+
+      .frentes-col:hover {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.012) 26%, rgba(0, 0, 0, 0) 100%);
+      }
+
+      .frentes-canvas-container {
+        position: relative;
+        width: 5.8rem;
+        height: 5.8rem;
+        margin-bottom: 1.45rem;
+        display: grid;
+        place-items: center;
+      }
+
+      .frentes-canvas-container::before {
+        position: absolute;
+        inset: 14%;
+        border-radius: 50%;
+        content: "";
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent 72%);
+        filter: blur(0.35rem);
+      }
+
+      .frentes-mini-canvas {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .frentes-col-title {
+        font-family: "Manrope", sans-serif;
+        font-size: 1.08rem;
+        font-weight: 500;
+        margin: 0 0 1.15rem 0;
+        color: rgba(244, 241, 236, 0.95);
+        letter-spacing: -0.02em;
+      }
+
+      .frentes-col-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.62rem;
+        text-align: center;
+      }
+
+      .frentes-col-list li {
+        font-size: 0.83rem;
+        color: rgba(244, 241, 236, 0.58);
+        position: relative;
+        line-height: 1.4;
+      }
+
+      .frentes-col-list li::before {
+        content: "•";
+        color: rgba(244, 241, 236, 0.24);
+        margin-right: 0.35rem;
+      }
+
+      .copy[data-type="methodology"] {
+        width: min(92rem, 100%);
+        text-shadow: none;
+      }
+
+      .slide[data-align="center"] .copy[data-type="methodology"] {
+        width: min(92rem, 100%);
+      }
+
+      .methodology-container {
+        width: 100%;
+        max-width: 92rem;
+        margin: 0 auto;
+        text-align: left;
+        opacity: 0;
+        transform: translateY(1.4rem);
+        transition: opacity 0.85s var(--ease), transform 0.85s var(--ease);
+      }
+
+      .slide.is-active .methodology-container {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .slide.is-active .methodology-container > * {
+        opacity: 1 !important;
+        filter: none !important;
+        transform: none !important;
+      }
+
+      .methodology-container h2 {
+        max-width: none;
+        margin: 0 0 0 8.5% !important;
+        font-size: clamp(3.25rem, 4.5vw, 4.7rem);
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 1;
+        text-transform: lowercase;
+      }
+
+      .methodology-lead {
+        max-width: 36rem;
+        margin: 0.8rem 0 0 !important;
+        color: rgba(244, 241, 236, 0.64);
+        font-size: 0.92rem;
+        line-height: 1.7;
+      }
+
+      .methodology-stage {
+        position: relative;
+        height: clamp(24rem, 54vh, 31rem);
+        margin-top: clamp(0.7rem, 1.8vh, 1.2rem);
+        margin-inline: calc(var(--frame-side-pad) * -0.9);
+        overflow: hidden;
+      }
+
+      .methodology-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .methodology-steps {
+        position: absolute;
+        inset: 0;
+        display: block;
+        pointer-events: none;
+      }
+
+      .methodology-step {
+        position: absolute;
+        top: 1.1rem;
+        width: 10.4rem;
+        height: 100%;
+        padding: 0;
+        color: rgba(244, 241, 236, 0.96);
+        font-family: "Manrope", sans-serif;
+        font-size: clamp(1.08rem, 1.55vw, 1.34rem);
+        font-weight: 400;
+        letter-spacing: 0;
+        line-height: 1.06;
+        text-align: center;
+        text-transform: none;
+        transform: translateX(-50%);
+      }
+
+      .methodology-step:nth-child(1) {
+        left: 14%;
+      }
+
+      .methodology-step:nth-child(2) {
+        left: 38%;
+      }
+
+      .methodology-step:nth-child(3) {
+        left: 62%;
+      }
+
+      .methodology-step:nth-child(4) {
+        left: 86%;
+      }
+
+      .methodology-step::before {
+        position: absolute;
+        top: 4.65rem;
+        left: 50%;
+        width: 1px;
+        height: clamp(10rem, 29vh, 15.5rem);
+        border-radius: 0;
+        content: "";
+        background: repeating-linear-gradient(180deg, rgba(244, 241, 236, 0.58) 0 2px, transparent 2px 5px);
+        box-shadow: none;
+        transform: translateX(-50%);
+      }
+
+      .methodology-step:nth-child(1)::before {
+        height: calc(36% - 4.65rem);
+      }
+
+      .methodology-step:nth-child(2)::before {
+        height: calc(84% - 4.65rem);
+      }
+
+      .methodology-step:nth-child(3)::before {
+        height: calc(20% - 4.65rem);
+      }
+
+      .methodology-step:nth-child(4)::before {
+        height: calc(84% - 4.65rem);
+      }
+
+      .methodology-blocks {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0;
+        margin-top: -2.9rem;
+        margin-inline: calc(var(--frame-side-pad) * -0.9);
+        border-top: 1px solid rgba(244, 241, 236, 0.9);
+        background: transparent;
+      }
+
+      .methodology-blocks::before,
+      .methodology-blocks::after {
+        position: absolute;
+        top: 0;
+        width: 1px;
+        height: 3.35rem;
+        content: "";
+        background: rgba(244, 241, 236, 0.9);
+      }
+
+      .methodology-blocks::before {
+        left: 33.333%;
+      }
+
+      .methodology-blocks::after {
+        left: 66.666%;
+      }
+
+      .methodology-block {
+        position: relative;
+        padding: 1.15rem 1.2rem 0;
+        background: transparent;
+        text-align: center;
+      }
+
+      .methodology-block::before {
+        display: none;
+      }
+
+      .methodology-block strong {
+        display: block;
+        color: rgba(244, 241, 236, 0.92);
+        font-size: 1rem;
+        font-weight: 500;
+        letter-spacing: 0;
+      }
+
+      .methodology-block span {
+        display: block;
+        margin-top: 0.45rem;
+        color: rgba(244, 241, 236, 0.48);
+        font-size: 0.78rem;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 380px) {
+        h1 {
+          font-size: clamp(2.05rem, 11.5vw, 2.5rem);
+        }
+
+        .index-list span {
+          font-size: 1.42rem;
+          padding: 0.24rem 0;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .copy > *,
+        .slide {
+          transition-duration: 0.001s !important;
+        }
+      }
+      /* Preview Lock Overlay Styles */
+      .preview-lock-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 150;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(2, 2, 3, 0.74);
+        backdrop-filter: blur(1.6rem);
+        opacity: 1;
+        transition: opacity 0.5s ease;
+      }
+
+      .preview-lock-overlay.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .preview-lock-card {
+        width: min(90%, 25.5rem);
+        padding: 2.2rem 2rem 2.4rem;
+        border: 1px solid rgba(244, 241, 236, 0.12);
+        border-radius: 1.4rem;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+        box-shadow: 
+          0 2.5rem 5rem rgba(0, 0, 0, 0.58),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        text-align: center;
+        transform: scale(1);
+        transition: transform 0.4s var(--ease);
+      }
+
+      .preview-lock-overlay.is-hidden .preview-lock-card {
+        transform: scale(0.94);
+      }
+
+      .preview-lock-icon {
+        display: grid;
+        place-items: center;
+        width: 3.8rem;
+        height: 3.8rem;
+        margin: 0 auto 1.3rem;
+        border-radius: 50%;
+        border: 1px solid rgba(244, 241, 236, 0.12);
+        background: radial-gradient(circle at 36% 26%, rgba(255, 255, 255, 0.08) 0 13%, rgba(255, 255, 255, 0.02) 100%);
+        color: rgba(244, 241, 236, 0.82);
+        box-shadow: 0 0 1.5rem rgba(255, 255, 255, 0.04);
+      }
+
+      .preview-lock-icon svg {
+        width: 1.8rem;
+        height: 1.8rem;
+      }
+
+      .preview-lock-card h2 {
+        max-width: none;
+        margin: 0;
+        font-size: 1.65rem;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        color: rgba(244, 241, 236, 0.95);
+      }
+
+      .preview-lock-card p {
+        margin: 0.6rem 0 1.8rem;
+        color: rgba(244, 241, 236, 0.55);
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+
+      #previewLockForm {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        width: 100%;
+      }
+
+      #previewPassword {
+        width: 100%;
+        padding: 0.9rem 1.1rem;
+        border: 1px solid rgba(244, 241, 236, 0.14);
+        border-radius: 0.75rem;
+        background: rgba(0, 0, 0, 0.28);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 1rem;
+        text-align: center;
+        outline: none;
+        transition: border-color 0.3s, box-shadow 0.3s;
+      }
+
+      #previewPassword:focus {
+        border-color: rgba(244, 241, 236, 0.42);
+        box-shadow: 0 0 0.8rem rgba(255, 255, 255, 0.05);
+      }
+
+      #previewPassword::placeholder {
+        color: rgba(244, 241, 236, 0.28);
+      }
+
+      #previewSubmitBtn {
+        padding: 0.9rem;
+        border: none;
+        border-radius: 0.75rem;
+        background: #f4f1ec;
+        color: #050608;
+        font-family: inherit;
+        font-size: 0.92rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: opacity 0.3s, transform 0.2s;
+      }
+
+      #previewSubmitBtn:hover {
+        opacity: 0.92;
+      }
+
+      #previewSubmitBtn:active {
+        transform: scale(0.98);
+      }
+
+      .preview-lock-card .error-msg {
+        height: 1.25rem;
+        margin-top: 0.9rem;
+        color: #ff5555;
+        font-size: 0.83rem;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(-0.25rem);
+        transition: opacity 0.3s, transform 0.3s;
+      }
+
+      .preview-lock-card .error-msg.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        20%, 60% { transform: translateX(-6px); }
+        40%, 80% { transform: translateX(6px); }
+      }
+
+      .preview-lock-card.shake {
+        animation: shake 0.35s ease-in-out;
+      }
+
+      /* Squad Slide Styles */
+      .squad-container {
+        width: 100%;
+        max-width: 76rem;
+        margin: 0 auto;
+        text-align: center;
+        opacity: 0;
+        transform: translateY(1.5rem);
+        transition: opacity 0.85s var(--ease), transform 0.85s var(--ease);
+      }
+
+      .slide.is-active .squad-container {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .slide[data-type="squad"] .copy {
+        width: min(78rem, 100%);
+      }
+
+      .slide[data-type="squad"] h2 {
+        max-width: none;
+      }
+
+      .slide[data-type="squad"] .eyebrow {
+        color: rgba(244, 241, 236, 0.56);
+      }
+
+      .squad-intro {
+        max-width: 44rem;
+        margin: 0.95rem auto 0;
+        color: rgba(244, 241, 236, 0.66);
+        font-size: 0.95rem;
+        line-height: 1.7;
+      }
+
+      .squad-stage {
+        position: relative;
+        margin-top: 2.35rem;
+        padding: 2.15rem 2.2rem 2.35rem;
+        width: 100%;
+        border: 1px solid rgba(244, 241, 236, 0.07);
+        border-radius: 2rem;
+        background:
+          radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.03), transparent 28%),
+          linear-gradient(180deg, rgba(34, 34, 36, 0.38), rgba(18, 18, 20, 0.9) 38%, rgba(7, 7, 8, 0.98) 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.04),
+          0 2rem 4.5rem rgba(0, 0, 0, 0.26);
+        backdrop-filter: blur(0.42rem);
+        overflow: hidden;
+      }
+
+      .squad-stage::before {
+        position: absolute;
+        top: 7.7rem;
+        left: 50%;
+        width: 1px;
+        height: 1.85rem;
+        content: "";
+        background: linear-gradient(180deg, rgba(244, 241, 236, 0.18), rgba(244, 241, 236, 0.62), rgba(244, 241, 236, 0.12));
+        transform: translateX(-50%);
+      }
+
+      .squad-stage::after {
+        position: absolute;
+        inset: auto 8% 1.25rem;
+        height: 3.2rem;
+        content: "";
+        background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 72%);
+        opacity: 0.16;
+        filter: blur(1rem);
+        pointer-events: none;
+      }
+
+      .squad-top-grid {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 12rem));
+        justify-content: center;
+        gap: 7rem;
+        margin: 0 auto 3.35rem;
+      }
+
+      .squad-top-grid::after {
+        position: absolute;
+        left: 11%;
+        right: 11%;
+        bottom: -1.35rem;
+        height: 1px;
+        content: "";
+        background: linear-gradient(90deg, transparent, rgba(244, 241, 236, 0.34) 10%, rgba(244, 241, 236, 0.7) 50%, rgba(244, 241, 236, 0.34) 90%, transparent);
+      }
+
+      .squad-leader {
+        position: relative;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(46, 46, 50, 0.94), rgba(11, 11, 13, 0.98)),
+          radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.05), transparent 45%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.8rem;
+        padding: 0.95rem 1rem 0.8rem;
+        box-shadow:
+          0 1.1rem 2.6rem rgba(0, 0, 0, 0.25),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+
+      .squad-leader::before {
+        position: absolute;
+        inset: 0;
+        content: "";
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 48%);
+        pointer-events: none;
+      }
+
+      .squad-leader::after {
+        position: absolute;
+        left: 50%;
+        bottom: -1.35rem;
+        width: 1px;
+        height: 1.35rem;
+        content: "";
+        background: linear-gradient(180deg, rgba(244, 241, 236, 0.62), rgba(244, 241, 236, 0.2));
+        transform: translateX(-50%);
+      }
+
+      .squad-leader-name {
+        display: block;
+        font-family: "Manrope", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.96);
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+
+      .squad-leader-role {
+        display: block;
+        margin-top: 0.35rem;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.46rem;
+        color: rgba(244, 241, 236, 0.56);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .squad-grid {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(7, minmax(6.65rem, 1fr));
+        gap: 0.8rem;
+        align-items: start;
+        padding-top: 0.1rem;
+      }
+
+      .squad-grid::before {
+        position: absolute;
+        top: 0.65rem;
+        left: 4.5%;
+        right: 4.5%;
+        height: 1px;
+        content: "";
+        background: linear-gradient(90deg, transparent, rgba(244, 241, 236, 0.28) 10%, rgba(244, 241, 236, 0.76) 50%, rgba(244, 241, 236, 0.28) 90%, transparent);
+      }
+
+      .squad-grid::after {
+        position: absolute;
+        inset: 0;
+        content: "";
+        background: radial-gradient(circle at 50% 14%, rgba(255, 255, 255, 0.08), transparent 28%);
+        pointer-events: none;
+        opacity: 0.35;
+      }
+
+      .squad-col {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        opacity: 0;
+        transform: translateY(1rem);
+        transition: opacity 0.75s var(--ease), transform 0.75s var(--ease);
+      }
+
+      .slide.is-active .squad-col {
+        opacity: 1;
+        transform: translateY(0);
+        transition-delay: calc(0.22s + (var(--col-index) * 0.05s));
+      }
+
+      .squad-col::before {
+        position: absolute;
+        top: 0.65rem;
+        left: 50%;
+        width: 1px;
+        height: 1.45rem;
+        content: "";
+        background: linear-gradient(180deg, rgba(244, 241, 236, 0.75), rgba(244, 241, 236, 0.15));
+        transform: translateX(-50%);
+      }
+
+      .squad-col-title {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        min-height: 3rem;
+        margin: 1.8rem 0 0.7rem;
+        padding: 0.7rem 0.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.7rem;
+        background:
+          linear-gradient(180deg, rgba(49, 49, 54, 0.95), rgba(14, 14, 16, 0.98)),
+          radial-gradient(circle at 20% 18%, rgba(255, 255, 255, 0.04), transparent 42%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow:
+          0 0.8rem 1.8rem rgba(0, 0, 0, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        font-family: "Manrope", sans-serif;
+        font-size: 0.56rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.96);
+        letter-spacing: 0.025em;
+        line-height: 1.25;
+        text-transform: uppercase;
+      }
+
+      .squad-col-title::before {
+        position: absolute;
+        inset: 0;
+        content: "";
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 45%);
+        pointer-events: none;
+      }
+
+      .squad-col-list {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .squad-col-list li {
+        min-height: 1.75rem;
+        padding: 0.45rem 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.55rem;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(235, 235, 238, 0.94));
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        box-shadow:
+          0 0.5rem 1.15rem rgba(0, 0, 0, 0.14),
+          inset 0 1px 0 rgba(255, 255, 255, 0.72);
+        font-size: 0.63rem;
+        font-weight: 600;
+        color: rgba(28, 30, 36, 0.9);
+        line-height: 1.22;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="orientation-lock" id="orientationLock" aria-live="polite">
+      <!-- State: portrait (rotate) -->
+      <div class="orientation-lock__card" id="lockCardRotate">
+        <div class="orientation-lock__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="rgba(244,241,236,0.88)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="14" y="6" width="14" height="24" rx="3"/>
+            <path d="M32 10c5 3 8 8.5 8 14"/>
+            <path d="M36 7l4 3-3 4"/>
+          </svg>
+        </div>
+        <p class="orientation-lock__eyebrow">Orientação</p>
+        <h2>Vire a tela</h2>
+        <p>Gire o dispositivo para a posição horizontal para ver a proposta em 16:9.</p>
+      </div>
+      <!-- State: landscape mobile (use desktop) -->
+      <div class="orientation-lock__card" id="lockCardDesktop" style="display:none">
+        <div class="orientation-lock__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="rgba(244,241,236,0.88)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="8" width="40" height="26" rx="3"/>
+            <path d="M16 34v6M32 34v6M12 40h24"/>
+          </svg>
+        </div>
+        <p class="orientation-lock__eyebrow">Melhor experiência</p>
+        <h2>Abra no computador</h2>
+        <p>Esta proposta foi criada para desktop. Para a melhor experiência, acesse pelo computador.</p>
+        <button id="lockBypassBtn" style="margin-top:1.2rem;padding:0.7rem 1.4rem;border:1px solid rgba(244,241,236,0.28);border-radius:999rem;background:transparent;color:rgba(244,241,236,0.62);font-family:inherit;font-size:0.82rem;cursor:pointer;">Continuar assim mesmo</button>
+      </div>
+    </div>
+
+    <div class="presentation-shell" id="presentationShell">
+    <div class="grain" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <section class="visual-stage" aria-hidden="true">
+      <canvas id="orbCanvas"></canvas>
+      <div class="stage-light stage-light--top"></div>
+      <div class="stage-light stage-light--floor"></div>
+    </section>
+
+    <a class="brand" href="#1">
+      <span class="brand-mark"></span>
+      <span>Huddle</span>
+    </a>
+
+    <main class="deck" id="deck"></main>
+
+    <button class="deck-arrow deck-arrow--prev" id="prev" aria-label="Slide anterior">&#8249;</button>
+    <button class="deck-arrow deck-arrow--next" id="next" aria-label="Próximo slide">&#8250;</button>
+
+    <div class="deck-foot">
+      <div class="deck-dots" id="dots"></div>
+      <div class="deck-nav">
+        <button class="deck-nav-btn" id="navPrev" type="button">
+          <span class="arrow">&#8592;</span> Anterior
+        </button>
+        <button class="deck-nav-btn" id="navNext" type="button">
+          Próximo <span class="arrow">&#8594;</span>
+        </button>
+      </div>
+      <div class="deck-counter"><b id="counterCurrent">01</b> / <span id="counterTotal">03</span></div>
+    </div>
+
+    <!-- Password Protection Overlay -->
+    <div class="preview-lock-overlay" id="previewLockOverlay">
+      <div class="preview-lock-card">
+        <div class="preview-lock-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h2>Acesso Restrito</h2>
+        <p>Digite a senha para desbloquear o preview da proposta.</p>
+        <form id="previewLockForm">
+          <input type="password" id="previewPassword" placeholder="Senha" autofocus required autocomplete="current-password" />
+          <button type="submit" id="previewSubmitBtn">Desbloquear</button>
+        </form>
+        <div class="error-msg" id="previewErrorMsg">Senha incorreta</div>
+      </div>
+    </div>
+    </div>
+
+    <script>
+      "use strict";
+
+      let previewLocked = sessionStorage.getItem("deck_unlocked") !== "true";
+      let initialGo = true;
+
+      const SLIDES = [
+        {
+          id: "capa", type: "cover", state: "proposalOpening", align: "left",
+          eyebrow: "Proposta", title: "Institucional JDP", text: "Estoque | Lançamentos",
+        },
+        {
+          id: "indice", type: "index", state: "summaryMap", align: "left",
+          eyebrow: "Sumário", items: ["Quem somos", "Cases", "O que fazemos", "Proposta", "Parceria"], meta: "Ecossistema Huddle",
+        },
+        {
+          id: "quem-somos", type: "section", state: "whoWeAreIntro", align: "left",
+          eyebrow: "Seção 01", title: "Quem somos",
+        },
+        {
+          id: "manifesto", type: "manifesto", state: "collaborativeNetwork", align: "left",
+          eyebrow: "Quem somos", title: "Quem somos", text: "Somos uma rede colaborativa pensada para entregar uma solução completa de branding, marketing, comunicação e inovação. Atuamos em toda cadeia ou em pontos específicos, de acordo com as necessidades de cada cliente. São 3 pilares estruturais que fundamentam nosso diferencial competitivo: Estratégia, Criatividade e Inovação. Andando juntos em todos os momentos dessa jornada de transformação."
+        },
+        {
+          id: "estatisticas", type: "stats", state: "huddleEcosystem", align: "left",
+          eyebrow: "ECOSSISTEMA HUDDLE", title: "ECOSSISTEMA HUDDLE",
+          stats: [
+            { value: "80", label: "Colaboradores diretos" },
+            { value: "50", label: "Profissionais autônomos" },
+            { value: "20", label: "Empresas nova economia" },
+            { value: "5", label: "Mentores consultivos" },
+            { value: "4", label: "Parceiros de inovação" },
+            { value: "2", label: "Ecossistemas de educação" }
+          ],
+        },
+        {
+          id: "mercados-atuacao", type: "section", state: "huddleEcosystem", align: "left",
+          eyebrow: "Mercados de Atuação", title: "Mercados de Atuação",
+          text: "SP · Goiânia · Maringá/Londrina · Cuiabá · Florianópolis · Interior SP · Fortaleza · Belém · Salvador · Balneário Camboriú"
+        },
+        {
+          id: "clientes-cases", type: "section", state: "casesShowcase", align: "left",
+          eyebrow: "Seção 02", title: "Clientes",
+        },
+        {
+          id: "galeria-clientes", type: "gallery", state: "clientsGallery", align: "left",
+          eyebrow: "Clientes",
+          items: [
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-01.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-02.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-03.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-04.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-05.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-06.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-07.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-08.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-09.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-10.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-11.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-12.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-13.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-14.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-15.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-16.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-17.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-18.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-19.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-20.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-21.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-22.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-23.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-24.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-25.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-26.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-27.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-28.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-29.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-30.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-31.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-32.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-33.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-34.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-35.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-36.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-37.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-38.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-39.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-40.png",
+            "https://raw.githubusercontent.com/Hunddle/Tecnisa/main/Logos/Logos-41.png"
+          ]
+        },
+        {
+          id: "o-que-fazemos", type: "section", state: "whatWeDoExpansion", align: "left",
+          eyebrow: "Seção 03", title: "O que fazemos",
+        },
+        {
+          id: "frentes-atuacao", type: "frentes", state: "transitionAlignment", align: "center",
+          eyebrow: "Como Atuamos", title: "Frentes de Atuação", text: "Estas são as frentes de atuação — cada uma com uma lógica própria dentro do ecossistema.",
+          frentes: [
+            { title: "Branding", system: "branding", items: ["Naming", "Identidade", "Território"] },
+            { title: "Marketing", system: "marketing", items: ["Estratégia", "Diagnóstico", "Plano"] },
+            { title: "Comunicação", system: "communication", items: ["Conceito", "Manifesto", "Conteúdo"] },
+            { title: "Campanha", system: "campaign", items: ["KV", "Desdobramentos", "PDV"] },
+            { title: "Performance", system: "performance", items: ["Mídia", "Leads", "Otimização"] }
+          ]
+        },
+        {
+          id: "metodologia", type: "section", state: "methodologyFlow", align: "left",
+          eyebrow: "Como fazemos", title: "Metodologia",
+        },
+        {
+          id: "slide-visual-pos-metodologia", type: "methodology", state: "methodJourney", align: "center",
+          eyebrow: "", title: "metodologia",
+          steps: ["Olhar pra dentro<br>Olhar pra fora", "Diagnóstico", "Criação", "Plano de Ação"],
+          blocks: [
+            { title: "Diagnóstico + Estratégia", descr: "Pesquisa interna, mercado e leitura estratégica." },
+            { title: "Conceito Criativo", descr: "Território, conceito, linguagem e expressão." },
+            { title: "Implementação e Inovação", descr: "Plano, prioridades, formatos e evolução contínua." }
+          ]
+        },
+        {
+          id: "campanha-inst-section", type: "section", state: "institutionalHybrid", align: "left",
+          eyebrow: "Desdobramentos", title: "Campanha Institucional + Desdobramentos Online e Offline",
+        },
+        {
+          id: "campanha-inst-off", type: "content", state: "institutionalOfflinePresence", align: "left",
+          eyebrow: "CAMPANHA INSTITUCIONAL - OFFLINE", title: "Offline.",
+          items: [
+            "## Planejamento estratégico",
+            "-- Estudo de mercado / Análise Concorrentes / Diagnóstico / Insights para desenvolvimento do projeto criativo",
+            "## Criação da campanha de comunicação",
+            "-- Conceito criativo",
+            "-- KV Completo: identidade visual completa da campanha",
+            "-- Anúncios em todos os formatos para as mídias impressas (revista, jornal...)",
+            "-- Anúncios em todos os formatos para as mídias exteriores (outdoor, ponto de ônibus, relógio de rua, elemídia, DOOH)",
+            "-- Manifesto / Roteiro filme / vídeo / Depoimentos",
+            "## Criação comunicação visual para PDVs",
+            "-- Outdoor / Tapume / Placas de Sinalização",
+            "-- Comunicação visual de Stand",
+            "## Criação de plano de mídia offline",
+            "-- Estratégia e tática de mídia offline",
+            "-- Negociação com todos os veículos que fizerem parte do plano de mídia final aprovado"
+          ]
+        },
+        {
+          id: "campanha-inst-on-1", type: "content", state: "institutionalOnline", align: "left",
+          eyebrow: "CAMPANHA INSTITUCIONAL - ONLINE", title: "Online.",
+          items: [
+            "## Planejamento estratégico de performance",
+            "## Criação de anúncios",
+            "-- Criação de anúncios para Facebook e Instagram",
+            "-- Criação de anúncios para Google (Search e Display)",
+            "-- Criação de anúncios para Mídia Programática",
+            "-- Criação de anúncios para outros veículos digitais",
+            "## Gestão e otimização de performance com o objetivo de gerar o maior número de leads qualificados possíveis nos canais",
+            "-- Google Ads / Meta Ads / TikTok Ads",
+            "-- Portais / YouTube",
+            "## Plano de mídia e controle de investimento",
+            "-- Definição dos targets-personas-clusters",
+            "-- Definição dos KPIs de campanhas (ex.: CPC, CPA, CPL, CAC, etc)",
+            "-- Definição de palavras-chave",
+            "-- Definição de raio das campanhas (mercados a serem trabalhados geograficamente)",
+            "-- Setup de contas de anúncios",
+            "-- Setup de campanhas nos gerenciadores de anúncios",
+            "## Administração das campanhas",
+            "-- Monitoramento e otimização de performance",
+            "-- Testes A/B",
+            "-- Operação e administração das campanhas",
+            "-- Ajustes de estratégia e redirecionamento de verba entre canais",
+            "-- Revisão e ajustes da estratégia",
+            "-- Revisão e ajustes das ações (táticas)",
+            "-- Relatórios de resultados semanais e mensais",
+            "-- Suporte à decisão estratégica baseado em dados"
+          ]
+        },
+        {
+          id: "campanha-inst-on-2", type: "content", state: "institutionalCrm", align: "left",
+          eyebrow: "CAMPANHA INSTITUCIONAL - ONLINE", title: "Online (cont.).",
+          items: [
+            "## Gestão de redes sociais",
+            "-- Definição de estratégia por plataforma (Instagram, Facebook, TikTok, LinkedIn)",
+            "-- Criação de calendário editorial mensal",
+            "-- Produção de conteúdo orgânico (estático, carrossel, reels, stories)",
+            "-- Gestão de comunidade e moderação",
+            "-- Monitoramento de métricas e desempenho orgânico",
+            "## Landing pages",
+            "-- Criação e otimização de landing pages por campanha",
+            "-- Estruturação de funis de conversão digital",
+            "-- Setup de tracking, pixels e integrações (GA4, Tag Manager, CRM)",
+            "## Criação de conteúdo para CRM",
+            "-- Criação de conteúdos para fluxos de automação e réguas de nutrição",
+            "-- Desenvolvimento de peças e textos para e-mail marketing",
+            "-- Criação de conteúdos para comunicação via WhatsApp",
+            "-- Integração da base do CRM com o dashboard gerado para o cliente",
+            "-- NÃO incluso configuração e automação das réguas de CRM"
+          ]
+        },
+        {
+          id: "estoque-section", type: "section", state: "section", align: "left",
+          eyebrow: "Desdobramentos", title: "Campanha de Estoque + Desdobramentos Online e Offline",
+        },
+        {
+          id: "estoque-off", type: "content", state: "dense", align: "left",
+          eyebrow: "CAMPANHA ESTOQUE - OFFLINE", title: "Offline.",
+          items: [
+            "## Planejamento estratégico",
+            "-- Estudo de mercado / Análise Concorrentes / Diagnóstico / Insights para desenvolvimento do projeto criativo",
+            "## Criação da campanha de comunicação",
+            "-- Conceito criativo",
+            "-- KV Completo: identidade visual completa da campanha",
+            "-- Anúncios em todos os formatos para as mídias impressas (revista, jornal...)",
+            "-- Anúncios em todos os formatos para as mídias exteriores (outdoor, ponto de ônibus, relógio de rua, elemídia, DOOH)",
+            "-- Manifesto / Roteiro filme / vídeo / Depoimentos",
+            "## Criação comunicação visual para PDVs",
+            "-- Outdoor / Tapume / Placas de Sinalização",
+            "-- Comunicação visual de Stand",
+            "## Criação de plano de mídia offline",
+            "-- Estratégia e tática de mídia offline",
+            "-- Negociação com todos os veículos que fizerem parte do plano de mídia final aprovado"
+          ]
+        },
+        {
+          id: "estoque-on-1", type: "content", state: "stockDigitalCommand", align: "left",
+          eyebrow: "CAMPANHA ESTOQUE - ONLINE", title: "Online.",
+          items: [
+            "## Planejamento estratégico de performance",
+            "## Criação de anúncios",
+            "-- Criação de anúncios para Facebook e Instagram",
+            "-- Criação de anúncios para Google (Search e Display)",
+            "-- Criação de anúncios para Mídia Programática",
+            "-- Criação de anúncios para outros veículos digitais",
+            "## Gestão e otimização de performance com o objetivo de gerar o maior número de leads qualificados possíveis nos canais",
+            "-- Google Ads / Meta Ads / TikTok Ads",
+            "-- Portais / YouTube",
+            "## Plano de mídia e controle de investimento",
+            "-- Definição dos targets-personas-clusters",
+            "-- Definição dos KPIs de campanhas (ex.: CPC, CPA, CPL, CAC, etc)",
+            "-- Definição de palavras-chave",
+            "-- Definição de raio das campanhas (mercados a serem trabalhados geograficamente)",
+            "-- Setup de contas de anúncios",
+            "-- Setup de campanhas nos gerenciadores de anúncios",
+            "## Administração das campanhas",
+            "-- Monitoramento e otimização de performance",
+            "-- Testes A/B",
+            "-- Operação e administração das campanhas",
+            "-- Ajustes de estratégia e redirecionamento de verba entre canais",
+            "-- Revisão e ajustes da estratégia",
+            "-- Revisão e ajustes das ações (táticas)",
+            "-- Relatórios de resultados semanais e mensais",
+            "-- Suporte à decisão estratégica baseado em dados"
+          ]
+        },
+        {
+          id: "estoque-on-2", type: "content", state: "stockDigitalRetargeting", align: "left",
+          eyebrow: "CAMPANHA ESTOQUE - ONLINE", title: "Online (cont.).",
+          items: [
+            "## Gestão de redes sociais",
+            "-- Definição de estratégia por plataforma (Instagram, Facebook, TikTok, LinkedIn)",
+            "-- Criação de calendário editorial mensal",
+            "-- Produção de conteúdo orgânico (estático, carrossel, reels, stories)",
+            "-- Gestão de comunidade e moderação",
+            "-- Monitoramento de métricas e desempenho orgânico",
+            "## Landing pages",
+            "-- Criação e otimização de landing pages por campanha",
+            "-- Estruturação de funis de conversão digital",
+            "-- Setup de tracking, pixels e integrações (GA4, Tag Manager, CRM)",
+            "## Criação de conteúdo para CRM",
+            "-- Criação de conteúdos para fluxos de automação e réguas de nutrição",
+            "-- Desenvolvimento de peças e textos para e-mail marketing",
+            "-- Criação de conteúdos para comunicação via WhatsApp",
+            "-- Integração da base do CRM com o dashboard gerado para o cliente",
+            "-- NÃO incluso configuração e automação das réguas de CRM"
+          ]
+        },
+        {
+          id: "produto-section", type: "section", state: "productLaunchSection", align: "left",
+          eyebrow: "Desdobramentos", title: "Campanha de Produto + Desdobramentos Online e Offline",
+        },
+        {
+          id: "produto-off", type: "content", state: "productOfflineJourney", align: "left",
+          eyebrow: "CAMPANHA DE PRODUTO - OFFLINE", title: "Offline.",
+          items: [
+            "## Planejamento Estratégico",
+            "-- Estudo de mercado / Análise Concorrentes / Análise Região / Análise Consumidor-alvo",
+            "-- Diagnóstico / Insights para desenvolvimento do projeto criativo",
+            "## Criação da Campanha de Comunicação",
+            "-- Conceito criativo",
+            "-- KV Completo: identidade visual completa da campanha",
+            "-- Anúncios em todos os formatos para as mídias impressas revista, jornal...)",
+            "-- Anúncios em todos os formatos para as mídias exteriores (outdoor, ponto de ônibus, relógio de rua, elemídia, DOOH)",
+            "-- Outdoors e peças para mídia OOH",
+            "-- Folder/Reprint/Book Cliente",
+            "-- Mala direta / Email mkt",
+            "-- Roteiro filme / vídeo / Depoimentos",
+            "## Criação Comunicação Visual do Projeto",
+            "-- Outdoor / Tapume / Placas de Sinalização",
+            "-- Portal de Entrada / Receptivo no local",
+            "-- Identidade Visual das Promotoras",
+            "-- Ações de Experiência do Consumidor no Stand de Vendas",
+            "-- Blimps / Balões / Wind Flags",
+            "## Criação de Plano de Mídia Offline",
+            "-- Estratégia e tática de mídia offline",
+            "-- Negociação com todos os veículos que fizerem parte do plano de mídia final aprovado"
+          ]
+        },
+        {
+          id: "produto-on-1", type: "content", state: "productOnlineCommand", align: "left",
+          eyebrow: "CAMPANHA DE PRODUTO - ONLINE", title: "Online.",
+          items: [
+            "## Planejamento estratégico de Performance",
+            "## Criação de anúncios",
+            "-- Criação de anúncios para Facebook e Instagram",
+            "-- Criação de anúncios para Google (Search e Display)",
+            "-- Criação de anúncios para Mídia Programática",
+            "-- Criação de anúncios para outros veículos digitais",
+            "## Gestão e otimização de performance com o objetivo de gerar o maior número de leads qualificados possíveis nos canais",
+            "-- Google Ads / Meta Ads / Tiktok Ads",
+            "-- Portais / Youtube",
+            "## Plano de mídia e controle de investimento",
+            "-- Definição dos targets-personas-clusters",
+            "-- Definição dos KPIs de Campanhas (ex.: CPC, CPA, CPL, CAC, etc)",
+            "-- Definição de palavras-chave",
+            "-- Definição de raio das campanhas (mercados a serem trabalhados geograficamente)",
+            "-- Setup de contas de anúncios",
+            "-- Setup de campanhas nos gerenciadores de anúncios",
+            "## Administração das Campanhas",
+            "-- Monitoramento e otimização de performance",
+            "-- Testes A/B",
+            "-- Operação e administração das campanhas",
+            "-- Ajustes de estratégia e redirecionamento de verba entre canais",
+            "-- Revisão e ajustes da estratégia",
+            "-- Revisão e ajustes das ações (táticas)",
+            "-- Relatórios de resultados semanais e mensais",
+            "-- Suporte à decisão estratégica baseado em dados"
+          ]
+        },
+        {
+          id: "produto-on-2", type: "content", state: "productDigitalDesire", align: "left",
+          eyebrow: "CAMPANHA DE PRODUTO - ONLINE", title: "Online (cont.).",
+          items: [
+            "## Gestão de Redes Sociais",
+            "-- Definição de estratégia por plataforma (Instagram, Facebook, TikTok, LinkedIn)",
+            "-- Criação de calendário editorial mensal",
+            "-- Produção de conteúdo orgânico (estático, carrossel, reels, stories)",
+            "-- Gestão de comunidade e moderação",
+            "-- Monitoramento de métricas e desempenho orgânico",
+            "## Landing Pages",
+            "-- Criação e otimização de landing pages por campanha",
+            "-- Estruturação de funis de conversão digital",
+            "-- Setup de tracking, pixels e integrações (GA4, Tag Manager, CRM)",
+            "## Criação de conteúdo para CRM",
+            "-- Criação de conteúdos para fluxos de automação e réguas de nutrição",
+            "-- Desenvolvimento de peças e textos para e-mail marketing",
+            "-- Criação de conteúdos para comunicação via WhatsApp",
+            "-- Integração da base do CRM com o dashboard gerado para o cliente",
+            "-- NÃO incluso configuração e automação das réguas de CRM"
+          ]
+        },
+        {
+          id: "campanha-online-section", type: "section", state: "onlineCampaignNetwork", align: "left",
+          eyebrow: "Desdobramentos", title: "Campanha + Desdobramentos Online",
+        },
+        {
+          id: "entregaveis", type: "content", state: "deliverablesStack", align: "left",
+          eyebrow: "Considerações Gerais", title: "Entregáveis.",
+          items: [
+            "## Entregáveis",
+            "-- Planejamento Estratégico",
+            "-- Diagnóstico",
+            "-- Conceito Criativo",
+            "-- Campanha de Comunicação offline e Online",
+            "-- Plano de Ação",
+            "-- Arte Finalização de todas as peças necessárias para a campanha",
+            "-- Negociação, autorização, envio de materiais, checking de todos os processos de mídia offline/online",
+            "-- Relatórios periódicos sobre a evolução da campanha",
+            "## Prazo de Entrega",
+            "-- Planejamento: 15 dias",
+            "-- Conceito e Campanha: 30 dias",
+            "-- Finalização: 5/10 dias"
+          ],
+        },
+        {
+          id: "organizacao", type: "squad", state: "organizationSystem", align: "center",
+          eyebrow: "Organização", title: "ORGANIZAÇÃO",
+          text: "",
+          leaders: [
+            { name: "Tecnisa", role: "Cliente / Aprovação" },
+            { name: "Huddle", role: "Coordenação Geral" }
+          ],
+          frentes: [
+            { title: "Atendimento", items: ["Head Atendimento", "Atendimento", "Assist. Atendimento"] },
+            { title: "Criação", items: ["D.A. Senior", "Redator Senior", "D.A. Jr", "Designer Gráfico", "Intern"] },
+            { title: "Mídia", items: ["Head de Mídia", "Coord. Mídia On-line", "Resp. Mídia Off", "Analista de Perf", "Assist. de Off", "B.I."] },
+            { title: "Social", items: ["Social", "Content / CRM", "CM"] },
+            { title: "Revisão / Finalização", items: ["Revisor", "Arte Final"] },
+            { title: "Planejamento", items: ["Plan. Estratégico", "Plan. Operacional", "Plan. Always On"] },
+            { title: "Tecnologia e IA", items: ["Head de Inovação"] }
+          ]
+        },
+        {
+          id: "ferramentas", type: "content", state: "toolsDashboard", align: "left",
+          eyebrow: "ORGANIZAÇÃO + FERRAMENTAS", title: "Ferramentas.",
+          items: [
+            "Google Drive: armazenamento geral de todos os materiais do job",
+            "Operand: gerenciador de projeto com acompanhamento de todas as demandas",
+            "Inteligencias Artificiais: Gemini, Krea, Freepik e Midjourney",
+            "Bancos de Imagens: Envato, Getty e Freepik (Custo por Imagem)",
+            "Looker: Apresentação de dados (dashboard)",
+            "Supermetrics: Integração de dados com o dashboard",
+            "Whatsapp: grupos de trabalho para decisões rápidas e follow ups",
+            "E-mails: aprovações, briefing e informações importantes para registro official",
+            "Reunião Semanal: avaliação geral do andamento das entregas e alinhamento de futuras demandas"
+          ]
+        },
+        {
+          id: "parceria", type: "section", state: "partnershipOrbit", align: "left",
+          eyebrow: "Parceria", title: "Parceria",
+        },
+        {
+          id: "comercial-1", type: "content", state: "partnershipPackages", align: "left",
+          eyebrow: "PARCERIA", title: "Institucional e Estoque.",
+          items: [
+            "## Institucional",
+            "-- Etapa Setup – 2 meses",
+            "-- Valor: R$ 120.000,00",
+            "-- Forma de Pagamento: 2x R$ 60.000,00",
+            "-- Etapa AlwaysOn – 10 meses",
+            "-- Valor: R$ 300.000,00",
+            "-- Forma de Pagamento: 10x R$ 30.000,00 (Início após a finalização do Setup)",
+            "-- Total ano: R$ 420.000,00",
+            "## Estoque",
+            "-- Etapa Setup – 2 meses",
+            "-- Valor: R$ 120.000,00",
+            "-- Forma de Pagamento: 2x R$ 60.000,00",
+            "-- Etapa AlwaysOn – 10 meses",
+            "-- Valor: R$ 400.000,00",
+            "-- Forma de Pagamento: 10x R$ 40.000,00 (Início após a finalização do Setup)",
+            "-- Total ano: R$ 520.000,00"
+          ]
+        },
+        {
+          id: "comercial-2", type: "content", state: "productCommercialStructure", align: "left",
+          eyebrow: "PARCERIA", title: "Produto.",
+          items: [
+            "## Lançamento de Produto (Valor por Produto)",
+            "-- Etapa de Setup/Lançamento – 6 meses (2 meses setup + 4 meses lançamento)",
+            "-- Valor: R$ 480.000,00",
+            "-- Forma de Pagamento: 6x R$ 80.000,00",
+            "-- Etapa Manutenção – 6 meses",
+            "-- Valor: R$ 240.000,00",
+            "-- Forma de Pagamento: 6x R$ 40.000,00",
+            "-- Total: R$ 720.000,00",
+            "## B.I. | Dashboard | Ferramentas",
+            "-- Valor: R$ 220.000,00",
+            "-- Forma de Pagamento: 12x R$ 20.000,00"
+          ],
+        },
+        {
+          id: "observacoes-finais", type: "content", state: "deliverablesStack", align: "left",
+          eyebrow: "Observações", title: "Observações.",
+          items: [
+            "Duração: Institucional + estoque: mensal always on · Lançamento: 12 meses (após esse prazo o produto entra na campanha de estoque).",
+            "A proposta contempla 1 lançamento imobiliário. Para novos lançamentos nos próximos anos, considerar esse mesmo valor de base para o primeiro ano de trabalho e, na sequência, também entrando para o fee de estoque.",
+            "10% honorários de mídia e produção.",
+            "Não estão inclusos produção gráfica, eletrônica ou digital, produção fotográfica.",
+            "Os custos de terceiros serão orçados e previamente aprovados pela Tecnisa para então darmos início às demandas de produção.",
+            "A presente proposta contempla a realização de trabalho de planejamento estratégico e a criação de campanha publicitária. O contrato é de 42 meses."
+          ]
+        },
+        {
+          id: "encerramento", type: "closing", state: "closingConvergence", align: "center",
+          eyebrow: "Encerramento", title: "Obrigado!", text: ""
+        }
+
+      ];
+
+                  const STATES = {
+        proposalOpening:      { x: 0.72, y: 0.52, size: 175, points: 3,  spread: 0.95, mode: "central_orbit_3_pillars", glow: 0.55, opacity: 1 },
+        summaryMap:           { x: 0.70, y: 0.50, size: 24,  points: 5,  spread: 0.78, mode: "five_section_map",       glow: 0.6,  opacity: 0.3 },
+        whoWeAreIntro:        { x: 0.67, y: 0.50, size: 195, points: 6,  spread: 0.2,  mode: "core_convergence",       glow: 0.9,  opacity: 1 },
+        collaborativeNetwork: { x: 0.70, y: 0.50, size: 135, points: 3,  spread: 0.85, mode: "three_pillar_network",   glow: 0.9,  opacity: 1 },
+        huddleEcosystem:      { x: 0.70, y: 0.50, size: 110, points: 25, spread: 1.1,  mode: "distributed_ecosystem",  glow: 1.05, opacity: 1 },
+        casesShowcase:        { x: 0.69, y: 0.50, size: 125, points: 8,  spread: 0.95, mode: "case_highlight_orbit",   glow: 0.9,  opacity: 1 },
+        clientsGallery:       { x: 0.65, y: 0.50, size: 0,   points: 0,  spread: 0,    mode: "stable_client_grid",    glow: 0,    opacity: 0 },
+        whatWeDoExpansion:    { x: 0.69, y: 0.50, size: 160, points: 6,  spread: 0.9,  mode: "service_expansion",     glow: 1.0,  opacity: 1 },
+        transitionAlignment:  { x: 0.50, y: 0.50, size: 0,   points: 0,  spread: 0.7,  mode: "void",                 glow: 0.0,  opacity: 0 },
+        methodologyFlow:      { x: 0.69, y: 0.50, size: 120, points: 5,  spread: 0.7,  mode: "guided_process_flow",   glow: 0.9,  opacity: 1 },
+        methodJourney:        { x: 0.50, y: 0.50, size: 0,   points: 0,  spread: 0.7,  mode: "void",                  glow: 0.0,  opacity: 0 },
+        postMethodTransition: { x: 0.69, y: 0.50, size: 140, points: 12, spread: 0.8,  mode: "process_to_modules",    glow: 0.9,  opacity: 1 },
+        offlineCampaignSection: { x: 0.69, y: 0.75, size: 190, points: 8,  spread: 1.2,  mode: "territorial_expansion", glow: 0.8,  opacity: 1 },
+        namingIdentitySystem: { x: 0.83, y: 0.50, size: 92,  points: 5,  spread: 0.55, mode: "case_highlight_orbit", glow: 0.42, opacity: 0.74 },
+        institutionalHybrid:  { x: 0.83, y: 0.50, size: 210, points: 16, spread: 1.2,  mode: "dual_online_offline_orbit", glow: 1.0, opacity: 1 },
+        institutionalOfflinePresence: { x: 0.83, y: 0.50, size: 150, points: 6,  spread: 0.9,  mode: "anchored_touchpoints",  glow: 0.8,  opacity: 1 },
+        institutionalOnline:  { x: 0.83, y: 0.50, size: 150, points: 12, spread: 0.85, mode: "dual_online_offline_orbit", glow: 1.0, opacity: 1 },
+        institutionalCrm:     { x: 0.83, y: 0.50, size: 132, points: 10, spread: 0.9,  mode: "digital_distribution_network", glow: 0.9, opacity: 1 },
+
+        // Campanha Estoque / Produto states
+        stockDigitalCommand:     { x: 0.83, y: 0.50, size: 60,  points: 22, spread: 0.92, mode: "network",               glow: 1.05, opacity: 1 },
+        stockDigitalRetargeting: { x: 0.83, y: 0.50, size: 122, points: 6,  spread: 0.72, mode: "orbit",                 glow: 0.56, opacity: 0.92 },
+        productLaunchSection:   { x: 0.83, y: 0.50, size: 170, points: 8,  spread: 1.0,  mode: "process_to_modules",    glow: 1.0,  opacity: 1 },
+        productOfflineJourney:  { x: 0.83, y: 0.50, size: 140, points: 6,  spread: 0.75, mode: "anchored_touchpoints",  glow: 0.8,  opacity: 1 },
+        productOnlineCommand:   { x: 0.83, y: 0.50, size: 150, points: 12, spread: 0.85, mode: "dual_online_offline_orbit", glow: 1.0, opacity: 1 },
+        productDigitalDesire:   { x: 0.83, y: 0.50, size: 135, points: 10, spread: 0.9,  mode: "digital_distribution_network", glow: 0.9, opacity: 1 },
+
+        // Slide 26-30
+        onlineCampaignNetwork: { x: 0.83, y: 0.50, size: 130, points: 18, spread: 0.95, mode: "digital_distribution_network", glow: 1.0, opacity: 1 },
+        deliverablesStack:     { x: 0.83, y: 0.50, size: 110, points: 15, spread: 0.6,  mode: "scope_layers",               glow: 0.85, opacity: 1 },
+        organizationSystem:    { x: 0.63, y: 0.57, size: 0,   points: 0,  spread: 0,    mode: "operational_grid",           glow: 0,    opacity: 0 },
+        toolsDashboard:        { x: 0.83, y: 0.50, size: 150, points: 9,  spread: 0.8,  mode: "connected_tool_panel",       glow: 1.0,  opacity: 1 },
+        partnershipOrbit:      { x: 0.83, y: 0.50, size: 100, points: 0,  spread: 0.9,  mode: "dual_partnership_orbit",     glow: 0.95, opacity: 1 },
+
+        // Slide 31-33
+        partnershipPackages:  { x: 0.83, y: 0.50, size: 130, points: 4,  spread: 0.95, mode: "setup_to_alwayson_pairs", glow: 0.9, opacity: 1 },
+        productCommercialStructure: { x: 0.83, y: 0.50, size: 160, points: 5, spread: 0.8, mode: "launch_contract_layers", glow: 0.9, opacity: 1 },
+        closingConvergence:   { x: 0.50, y: 0.50, size: 120, points: 28, spread: 0.9,  mode: "final_ecosystem_convergence", glow: 0.9, opacity: 1 },
+
+        cover:       { x: 0.72, y: 0.52, size: 104, points: 6,  spread: 0.95, mode: "orbit",   glow: 0.55, opacity: 1 },
+        index:       { x: 0.70, y: 0.50, size: 74,  points: 16, spread: 0.78, mode: "network", glow: 1.0,  opacity: 1 },
+        section:     { x: 0.67, y: 0.50, size: 116, points: 11, spread: 0.62, mode: "orbit",   glow: 0.85, opacity: 1 },
+        pillars:     { x: 0.70, y: 0.50, size: 78,  points: 3,  spread: 0.85, mode: "orbit",   glow: 0.9,  opacity: 1 },
+        dense:       { x: 0.70, y: 0.50, size: 60,  points: 22, spread: 0.92, mode: "network", glow: 1.05, opacity: 1 },
+        process:     { x: 0.70, y: 0.50, size: 70,  points: 4,  spread: 0.7,  mode: "orbit",   glow: 0.92, opacity: 1 },
+        convergence: { x: 0.50, y: 0.55, size: 90,  points: 12, spread: 1.2,  mode: "orbit",   glow: 1.0,  opacity: 1 },
+        quiet:       { x: 0.68, y: 0.52, size: 86,  points: 2,  spread: 0.6,  mode: "orbit",   glow: 0.45, opacity: 1 },
+        void:        { x: 0.5,  y: 0.5,  size: 24,  points: 0,  spread: 0,    mode: "orbit",   glow: 0.2,  opacity: 0.7 },
+      };
+
+                  const MOBILE_STATES = {
+        proposalOpening:      { x: 0.50, y: 0.32, size: 100, points: 3,  spread: 0.78, glow: 0.5,  opacity: 1 },
+        summaryMap:           { x: 0.50, y: 0.30, size: 15,  points: 5,  spread: 0.5,  glow: 0.6,  opacity: 0.3 },
+        whoWeAreIntro:        { x: 0.50, y: 0.32, size: 115, points: 6,  spread: 0.2,  glow: 0.7,  opacity: 1 },
+        collaborativeNetwork: { x: 0.50, y: 0.30, size: 80,  points: 3,  spread: 0.6,  glow: 0.6,  opacity: 1 },
+        huddleEcosystem:      { x: 0.50, y: 0.28, size: 65,  points: 15, spread: 0.8,  glow: 0.7,  opacity: 1 },
+        casesShowcase:        { x: 0.50, y: 0.32, size: 90,  points: 8,  spread: 0.7,  glow: 0.6,  opacity: 1 },
+        clientsGallery:       { x: 0.50, y: 0.30, size: 0,   points: 0,  spread: 0,    glow: 0,    opacity: 0 },
+        whatWeDoExpansion:    { x: 0.50, y: 0.32, size: 100, points: 6,  spread: 0.7,  glow: 0.7,  opacity: 1 },
+        transitionAlignment:  { x: 0.50, y: 0.30, size: 0,   points: 0,  spread: 0.5,  glow: 0.0,  opacity: 0 },
+        methodologyFlow:      { x: 0.50, y: 0.30, size: 80,  points: 5,  spread: 0.5,  glow: 0.6,  opacity: 1 },
+        methodJourney:        { x: 0.50, y: 0.30, size: 0,   points: 0,  spread: 0.5,  glow: 0.0,  opacity: 0 },
+        postMethodTransition: { x: 0.50, y: 0.30, size: 90,  points: 8,  spread: 0.6,  glow: 0.6,  opacity: 1 },
+        offlineCampaignSection: { x: 0.50, y: 0.65, size: 110, points: 6,  spread: 0.8,  glow: 0.5,  opacity: 1 },
+        namingIdentitySystem: { x: 0.50, y: 0.29, size: 54,  points: 4,  spread: 0.36, mode: "case_highlight_orbit", glow: 0.34, opacity: 0.68 },
+        institutionalHybrid:  { x: 0.50, y: 0.32, size: 130, points: 10, spread: 0.9,  glow: 0.7,  opacity: 1 },
+        institutionalOfflinePresence: { x: 0.50, y: 0.30, size: 90,  points: 6,  spread: 0.6,  glow: 0.5,  opacity: 1 },
+        institutionalCrmRight: { x: 0.50, y: 0.30, size: 90,  points: 8,  spread: 0.6,  glow: 0.6,  opacity: 1 },
+
+        // Slides 21-25
+        stockDigitalCommand:     { x: 0.50, y: 0.34, size: 46,  points: 14, spread: 0.58, mode: "network",               glow: 0.7,  opacity: 1 },
+        stockDigitalRetargeting: { x: 0.50, y: 0.30, size: 74,  points: 4,  spread: 0.44, mode: "orbit",                 glow: 0.42, opacity: 0.78 },
+        stockDigitalRetargetingRight: { x: 0.50, y: 0.30, size: 85,  points: 10, spread: 0.6,  glow: 0.6,  opacity: 1 },
+        productLaunchSection:   { x: 0.50, y: 0.32, size: 110, points: 6,  spread: 0.7,  glow: 0.7,  opacity: 1 },
+        productOfflineJourney:  { x: 0.50, y: 0.30, size: 90,  points: 5,  spread: 0.5,  glow: 0.5,  opacity: 1 },
+        productOnlineCommand:   { x: 0.50, y: 0.30, size: 95,  points: 8,  spread: 0.6,  glow: 0.7,  opacity: 1 },
+        productDigitalDesire:   { x: 0.50, y: 0.30, size: 90,  points: 8,  spread: 0.6,  glow: 0.6,  opacity: 1 },
+        productDigitalDesireRight: { x: 0.50, y: 0.30, size: 90,  points: 8,  spread: 0.6,  glow: 0.6,  opacity: 1 },
+
+        // Slide 26-30
+        onlineCampaignNetwork: { x: 0.50, y: 0.30, size: 90,  points: 12, spread: 0.7,  glow: 0.7,  opacity: 1 },
+        deliverablesStack:     { x: 0.50, y: 0.30, size: 80,  points: 10, spread: 0.5,  glow: 0.6,  opacity: 1 },
+        organizationSystem:    { x: 0.50, y: 0.32, size: 0,   points: 0,  spread: 0,    glow: 0,    opacity: 0 },
+        toolsDashboard:        { x: 0.50, y: 0.30, size: 100, points: 6,  spread: 0.6,  glow: 0.7,  opacity: 1 },
+        toolsDashboardRight:   { x: 0.50, y: 0.30, size: 100, points: 6,  spread: 0.6,  glow: 0.7,  opacity: 1 },
+        partnershipOrbit:      { x: 0.50, y: 0.30, size: 70,  points: 0,  spread: 0.7,  glow: 0.6,  opacity: 1 },
+
+        // Slide 31-33
+        partnershipPackages:  { x: 0.50, y: 0.30, size: 90,  points: 4,  spread: 0.7,  glow: 0.6,  opacity: 1 },
+        productCommercialStructure: { x: 0.50, y: 0.30, size: 110, points: 4,  spread: 0.6,  glow: 0.6,  opacity: 1 },
+        productCommercialStructureRight: { x: 0.50, y: 0.30, size: 110, points: 4,  spread: 0.6,  glow: 0.6,  opacity: 1 },
+        closingConvergence:   { x: 0.50, y: 0.32, size: 85,  points: 16, spread: 0.6,  glow: 0.7,  opacity: 1 },
+
+        cover:       { x: 0.50, y: 0.37, size: 70,  points: 6,  spread: 0.78 },
+        index:       { x: 0.50, y: 0.35, size: 50,  points: 11, spread: 0.5  },
+        section:     { x: 0.50, y: 0.38, size: 80,  points: 9,  spread: 0.46 },
+        pillars:     { x: 0.50, y: 0.36, size: 56,  points: 3,  spread: 0.55 },
+        dense:       { x: 0.50, y: 0.34, size: 46,  points: 14, spread: 0.58 },
+        process:     { x: 0.50, y: 0.35, size: 52,  points: 4,  spread: 0.5  },
+        convergence: { x: 0.50, y: 0.38, size: 64,  points: 8,  spread: 0.76 },
+        quiet:       { x: 0.50, y: 0.38, size: 60,  points: 2,  spread: 0.42 },
+        void:        { x: 0.50, y: 0.30, size: 15,  points: 0,  spread: 0    },
+      };
+
+      const canvas = document.getElementById("orbCanvas");
+      const ctx = canvas.getContext("2d");
+      const shellEl = document.getElementById("presentationShell");
+      const deckEl = document.getElementById("deck");
+      const dotsEl = document.getElementById("dots");
+      const counterCurrent = document.getElementById("counterCurrent");
+      const counterTotal = document.getElementById("counterTotal");
+      const prevBtn = document.getElementById("prev");
+      const nextBtn = document.getElementById("next");
+      const navPrev = document.getElementById("navPrev");
+      const navNext = document.getElementById("navNext");
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const orientationMedia = window.matchMedia("(max-width: 900px) and (orientation: portrait) and (pointer: coarse)");
+
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let time = 0;
+      let stateTime = 0;
+      let current = 0;
+      let locked = false;
+      let activeState = "cover";
+      let orientationLocked = false;
+
+      const visual = { ...STATES.cover };
+      const target = { ...STATES.cover };
+
+      const particles = Array.from({ length: 84 }, (_, i) => {
+        const seed = Math.sin(i * 999.91) * 10000;
+        const fract = seed - Math.floor(seed);
+        return {
+          angle: i * 2.399963 + fract * 0.65,
+          radius: 0.25 + ((i * 47) % 100) / 100,
+          phase: fract * Math.PI * 2,
+          size: 5.5 + ((i * 17) % 19) / 4,
+          drift: 0.75 + ((i * 31) % 100) / 180
+        };
+      });
+
+      let frentesSystems = [];
+      let methodologySystems = [];
+
+      function clamp(v, min = 0, max = 1) {
+        return Math.min(max, Math.max(min, v));
+      }
+
+      function lerp(a, b, n) {
+        return a + (b - a) * n;
+      }
+
+      function esc(str) {
+        return String(str).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+      }
+
+      function miniSeed(base, offset = 0) {
+        const raw = Math.sin((base + 1) * 91.17 + (offset + 1) * 17.41) * 10000;
+        return raw - Math.floor(raw);
+      }
+
+      function syncFrentesSystems() {
+        frentesSystems = [...deckEl.querySelectorAll(".frentes-mini-canvas")].map((canvasEl, columnIndex) => ({
+          canvas: canvasEl,
+          ctx: canvasEl.getContext("2d"),
+          mode: canvasEl.dataset.system || "branding",
+          points: Array.from({ length: 14 }, (_, pointIndex) => ({
+            angle: miniSeed(pointIndex, columnIndex) * Math.PI * 2,
+            radius: 0.28 + miniSeed(pointIndex + 10, columnIndex + 1) * 0.72,
+            drift: 0.55 + miniSeed(pointIndex + 20, columnIndex + 2) * 0.95,
+            phase: miniSeed(pointIndex + 30, columnIndex + 3) * Math.PI * 2
+          }))
+        }));
+        resizeFrentesSystems();
+      }
+
+      function resizeFrentesSystems() {
+        const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+        frentesSystems.forEach((system) => {
+          const rect = system.canvas.getBoundingClientRect();
+          system.width = Math.max(1, rect.width);
+          system.height = Math.max(1, rect.height);
+          system.canvas.width = Math.round(system.width * localDpr);
+          system.canvas.height = Math.round(system.height * localDpr);
+          system.ctx.setTransform(localDpr, 0, 0, localDpr, 0, 0);
+        });
+      }
+
+      function drawMiniCore(context, x, y, radius, alpha = 1) {
+        const glow = context.createRadialGradient(x, y, 0, x, y, radius * 3.2);
+        glow.addColorStop(0, `rgba(255, 255, 255, ${0.26 * alpha})`);
+        glow.addColorStop(0.4, `rgba(244, 241, 236, ${0.1 * alpha})`);
+        glow.addColorStop(1, "rgba(255, 255, 255, 0)");
+        context.fillStyle = glow;
+        context.beginPath();
+        context.arc(x, y, radius * 3.2, 0, Math.PI * 2);
+        context.fill();
+
+        const body = context.createRadialGradient(x - radius * 0.28, y - radius * 0.38, radius * 0.12, x, y, radius * 1.08);
+        body.addColorStop(0, "rgba(255, 255, 255, 1)");
+        body.addColorStop(0.28, "rgba(241, 238, 232, 0.98)");
+        body.addColorStop(0.7, "rgba(152, 148, 141, 0.96)");
+        body.addColorStop(1, "rgba(68, 65, 60, 0.96)");
+        context.fillStyle = body;
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+      }
+
+      function drawMiniDot(context, x, y, radius, alpha = 1) {
+        context.save();
+        context.globalAlpha = clamp(alpha, 0, 1);
+        context.shadowBlur = 10;
+        context.shadowColor = "rgba(255, 255, 255, 0.28)";
+        context.fillStyle = "rgba(255, 255, 255, 0.94)";
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+      }
+
+      function drawFrenteSystem(system, clock) {
+        const context = system.ctx;
+        const w = system.width || 0;
+        const h = system.height || 0;
+        if (!w || !h) return;
+
+        const cx = w * 0.5;
+        const cy = h * 0.5;
+        const base = Math.min(w, h);
+
+        context.clearRect(0, 0, w, h);
+
+        const halo = context.createRadialGradient(cx, cy, 0, cx, cy, base * 0.52);
+        halo.addColorStop(0, "rgba(255, 255, 255, 0.08)");
+        halo.addColorStop(1, "rgba(255, 255, 255, 0)");
+        context.fillStyle = halo;
+        context.fillRect(0, 0, w, h);
+
+        if (system.mode === "branding") {
+          drawMiniCore(context, cx, cy, base * 0.12);
+          context.save();
+          context.strokeStyle = "rgba(255, 255, 255, 0.12)";
+          context.lineWidth = 1;
+          system.points.slice(0, 12).forEach((point, index) => {
+            const scatterAngle = point.angle + clock * 0.45 * point.drift;
+            const outerRadius = base * (0.22 + point.radius * 0.18);
+            const innerRadius = base * (0.09 + (index % 4) * 0.015);
+            const converge = 0.45 + 0.4 * (Math.sin(clock * 0.9 + point.phase) * 0.5 + 0.5);
+            const sx = cx + Math.cos(scatterAngle) * outerRadius * 1.15;
+            const sy = cy + Math.sin(scatterAngle) * outerRadius * 0.72;
+            const tx = cx + Math.cos(scatterAngle * 1.35 + point.phase) * innerRadius;
+            const ty = cy + Math.sin(scatterAngle * 1.05 + point.phase) * innerRadius * 0.88;
+            const px = lerp(sx, tx, converge);
+            const py = lerp(sy, ty, converge);
+            context.beginPath();
+            context.moveTo(sx, sy);
+            context.lineTo(px, py);
+            context.stroke();
+            drawMiniDot(context, px, py, 1.4 + (index % 3) * 0.35, 0.9);
+          });
+          context.restore();
+          return;
+        }
+
+        if (system.mode === "marketing") {
+          drawMiniCore(context, cx, cy, base * 0.105);
+          context.save();
+          context.strokeStyle = "rgba(255, 255, 255, 0.17)";
+          context.lineWidth = 1;
+          [0, Math.PI / 5, -Math.PI / 4].forEach((rotation, orbitIndex) => {
+            const rx = base * (0.18 + orbitIndex * 0.055);
+            const ry = rx * (0.45 + orbitIndex * 0.04);
+            context.beginPath();
+            context.ellipse(cx, cy, rx, ry, rotation, 0, Math.PI * 2);
+            context.stroke();
+
+            const angle = clock * (0.8 + orbitIndex * 0.22) + orbitIndex * 1.7;
+            const px = cx + Math.cos(angle) * rx * Math.cos(rotation) - Math.sin(angle) * ry * Math.sin(rotation);
+            const py = cy + Math.cos(angle) * rx * Math.sin(rotation) + Math.sin(angle) * ry * Math.cos(rotation);
+            drawMiniDot(context, px, py, 1.8, 0.92);
+          });
+          context.restore();
+          return;
+        }
+
+        if (system.mode === "communication") {
+          drawMiniCore(context, cx, cy, base * 0.095);
+          context.save();
+          for (let wave = 0; wave < 3; wave += 1) {
+            const progress = (clock * 0.22 + wave / 3) % 1;
+            const radius = base * (0.12 + progress * 0.22);
+            context.strokeStyle = `rgba(255, 255, 255, ${0.22 * (1 - progress)})`;
+            context.lineWidth = 1;
+            context.beginPath();
+            context.ellipse(cx, cy, radius, radius * 0.62, 0, 0, Math.PI * 2);
+            context.stroke();
+          }
+
+          system.points.slice(0, 6).forEach((point, index) => {
+            const progress = (clock * 0.18 + index / 6) % 1;
+            const angle = -Math.PI / 2 + (index - 2.5) * 0.48 + Math.sin(clock * 0.45 + point.phase) * 0.08;
+            const radius = base * (0.11 + progress * 0.24);
+            const px = cx + Math.cos(angle) * radius;
+            const py = cy + Math.sin(angle) * radius * 0.95;
+            context.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - progress)})`;
+            context.beginPath();
+            context.moveTo(cx, cy);
+            context.lineTo(px, py);
+            context.stroke();
+            drawMiniDot(context, px, py, 1.2 + (1 - progress) * 1.3, 0.85 * (1 - progress * 0.25));
+          });
+          context.restore();
+          return;
+        }
+
+        if (system.mode === "campaign") {
+          drawMiniCore(context, cx, cy, base * 0.1);
+          context.save();
+          const branches = [-1.9, -0.9, -0.15, 0.7, 1.55];
+          branches.forEach((angle, index) => {
+            const radius = base * (0.19 + (index % 2) * 0.05);
+            const sway = Math.sin(clock * 0.5 + index) * base * 0.01;
+            const px = cx + Math.cos(angle) * radius;
+            const py = cy + Math.sin(angle) * radius * 0.8 + sway;
+            context.strokeStyle = "rgba(255, 255, 255, 0.16)";
+            context.lineWidth = 1;
+            context.beginPath();
+            context.moveTo(cx, cy);
+            context.lineTo(px, py);
+            context.stroke();
+
+            const pulse = (clock * 0.16 + index * 0.17) % 1;
+            const tx = lerp(cx, px, pulse);
+            const ty = lerp(cy, py, pulse);
+            drawMiniDot(context, tx, ty, 1.4, 0.78);
+            drawMiniDot(context, px, py, 2.1, 0.9);
+          });
+          context.restore();
+          return;
+        }
+
+        if (system.mode === "performance") {
+          const nodes = system.points.slice(0, 9).map((point, index) => {
+            const radius = base * (0.1 + point.radius * 0.2);
+            const angle = point.angle + clock * 0.12 + Math.sin(clock * 0.55 + index) * 0.08;
+            return {
+              x: cx + Math.cos(angle) * radius * 1.08,
+              y: cy + Math.sin(angle * 1.15) * radius * 0.88
+            };
+          });
+
+          const links = [];
+          context.save();
+          context.strokeStyle = "rgba(255, 255, 255, 0.16)";
+          context.lineWidth = 1;
+          for (let i = 0; i < nodes.length; i += 1) {
+            for (let j = i + 1; j < nodes.length; j += 1) {
+              const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+              if (dist > base * 0.24) continue;
+              links.push([nodes[i], nodes[j]]);
+              context.beginPath();
+              context.moveTo(nodes[i].x, nodes[i].y);
+              context.lineTo(nodes[j].x, nodes[j].y);
+              context.stroke();
+            }
+          }
+
+          links.slice(0, 4).forEach((pair, index) => {
+            const pulse = (clock * 0.2 + index * 0.24) % 1;
+            drawMiniDot(context, lerp(pair[0].x, pair[1].x, pulse), lerp(pair[0].y, pair[1].y, pulse), 1.2, 0.78);
+          });
+
+          nodes.forEach((node, index) => {
+            drawMiniDot(context, node.x, node.y, 1.4 + (index % 2) * 0.5, 0.88);
+          });
+          context.restore();
+        }
+      }
+
+      function drawFrentesSystems(clock) {
+        frentesSystems.forEach((system) => drawFrenteSystem(system, clock));
+      }
+
+      function syncMethodologySystems() {
+        methodologySystems = [...deckEl.querySelectorAll(".methodology-canvas")].map((canvasEl) => ({
+          canvas: canvasEl,
+          ctx: canvasEl.getContext("2d"),
+          particles: Array.from({ length: 36 }, (_, index) => ({
+            phase: miniSeed(index, 80) * Math.PI * 2,
+            drift: 0.55 + miniSeed(index, 90) * 0.85,
+            lane: index % 4,
+            size: 1.4 + miniSeed(index, 100) * 2.2
+          }))
+        }));
+        resizeMethodologySystems();
+      }
+
+      function resizeMethodologySystems() {
+        const localDpr = Math.min(window.devicePixelRatio || 1, 2);
+        methodologySystems.forEach((system) => {
+          const rect = system.canvas.getBoundingClientRect();
+          system.width = Math.max(1, rect.width);
+          system.height = Math.max(1, rect.height);
+          system.canvas.width = Math.round(system.width * localDpr);
+          system.canvas.height = Math.round(system.height * localDpr);
+          system.ctx.setTransform(localDpr, 0, 0, localDpr, 0, 0);
+        });
+      }
+
+      function methodologyPoint(w, h, progress) {
+        const nodes = [
+          { x: 0.02, y: 0.82 },
+          { x: 0.16, y: 0.36 },
+          { x: 0.34, y: 0.84 },
+          { x: 0.50, y: 0.48 },
+          { x: 0.58, y: 0.20 },
+          { x: 0.72, y: 0.84 },
+          { x: 0.98, y: 0.36 }
+        ];
+        const scaled = nodes.map((node) => ({ x: node.x * w, y: node.y * h }));
+        const scaledProgress = progress * (scaled.length - 1);
+        const index = Math.min(scaled.length - 2, Math.floor(scaledProgress));
+        const local = scaledProgress - index;
+        return {
+          x: lerp(scaled[index].x, scaled[index + 1].x, local),
+          y: lerp(scaled[index].y, scaled[index + 1].y, local)
+        };
+      }
+
+      function drawMethodologyCore(context, x, y, radius, alpha = 1) {
+        const glow = context.createRadialGradient(x, y, 0, x, y, radius * 5);
+        glow.addColorStop(0, `rgba(255, 255, 255, ${0.2 * alpha})`);
+        glow.addColorStop(0.36, `rgba(244, 241, 236, ${0.08 * alpha})`);
+        glow.addColorStop(1, "rgba(255, 255, 255, 0)");
+        context.fillStyle = glow;
+        context.beginPath();
+        context.arc(x, y, radius * 5, 0, Math.PI * 2);
+        context.fill();
+
+        const body = context.createRadialGradient(x - radius * 0.35, y - radius * 0.4, radius * 0.2, x, y, radius * 1.2);
+        body.addColorStop(0, "rgba(255,255,255,0.98)");
+        body.addColorStop(0.38, "rgba(232,228,221,0.92)");
+        body.addColorStop(1, "rgba(74,71,66,0.88)");
+        context.fillStyle = body;
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+      }
+
+      function drawMethodologyDot(context, x, y, radius, alpha = 1) {
+        context.save();
+        context.globalAlpha = clamp(alpha, 0, 1);
+        context.shadowBlur = 14;
+        context.shadowColor = "rgba(255, 255, 255, 0.32)";
+        context.fillStyle = "rgba(244, 241, 236, 0.96)";
+        context.beginPath();
+        context.arc(x, y, radius, 0, Math.PI * 2);
+        context.fill();
+        context.restore();
+      }
+
+      function drawMethodologySystem(system, clock) {
+        const context = system.ctx;
+        const w = system.width || 0;
+        const h = system.height || 0;
+        if (!w || !h) return;
+
+        context.clearRect(0, 0, w, h);
+
+        const origin = { x: 0.02 * w, y: 0.82 * h };
+        const inward = { x: 0.16 * w, y: 0.36 * h };
+        const valley = { x: 0.34 * w, y: 0.84 * h };
+        const diagnostic = { x: 0.50 * w, y: 0.48 * h };
+        const creation = { x: 0.58 * w, y: 0.20 * h };
+        const action = { x: 0.72 * w, y: 0.84 * h };
+        const final = { x: 0.98 * w, y: 0.36 * h };
+        const anchors = [origin, inward, valley, diagnostic, creation, action, final];
+
+        const points = Array.from({ length: 140 }, (_, index) => methodologyPoint(w, h, index / 139));
+        context.save();
+        context.strokeStyle = "rgba(244, 241, 236, 0.22)";
+        context.lineWidth = 1;
+        context.beginPath();
+        points.forEach((point, index) => {
+          if (index === 0) context.moveTo(point.x, point.y);
+          else context.lineTo(point.x, point.y);
+        });
+        context.stroke();
+        context.restore();
+
+        function lineColor(index, total, alpha = 0.86) {
+          const t = total <= 1 ? 0 : index / (total - 1);
+          const cyan = { r: 0, g: 176, b: 198 };
+          const amber = { r: 226, g: 92, b: 0 };
+          const mix = t < 0.5 ? t * 2 : (1 - t) * 2;
+          const r = lerp(amber.r, cyan.r, mix);
+          const g = lerp(amber.g, cyan.g, mix);
+          const b = lerp(amber.b, cyan.b, mix);
+          return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`;
+        }
+
+        function drawFan(from, toA, toB, count, offset = 0) {
+          for (let i = 0; i < count; i += 1) {
+            const t = count <= 1 ? 0 : i / (count - 1);
+            const wobble = Math.sin(clock * 0.5 + i * 0.7 + offset) * h * 0.006;
+            const target = {
+              x: lerp(toA.x, toB.x, t),
+              y: lerp(toA.y, toB.y, t) + wobble
+            };
+            context.save();
+            context.strokeStyle = lineColor(i + offset, count + offset, 0.72);
+            context.lineWidth = 1;
+            context.beginPath();
+            context.moveTo(from.x, from.y);
+            context.lineTo(target.x, target.y);
+            context.stroke();
+            context.restore();
+          }
+        }
+
+        drawFan(origin, inward, valley, 13, 0);
+        drawFan(valley, diagnostic, creation, 13, 5);
+        drawFan(creation, diagnostic, action, 13, 9);
+        drawFan(action, { x: 0.98 * w, y: 0.36 * h }, { x: 0.98 * w, y: 0.82 * h }, 14, 13);
+
+        const pulseProgress = (clock * 0.055) % 1;
+        const pulse = methodologyPoint(w, h, pulseProgress);
+        drawMethodologyDot(context, pulse.x, pulse.y, 2.4, 0.9);
+
+        anchors.slice(1, -1).forEach((point, index) => {
+          drawMethodologyCore(context, point.x, point.y, index === 3 ? 4.8 : 3.4, 0.7);
+        });
+
+        system.particles.slice(0, 18).forEach((particle, index) => {
+          const progress = (clock * 0.05 * particle.drift + index * 0.061) % 1;
+          const point = methodologyPoint(w, h, progress);
+          const y = point.y + Math.sin(clock * 0.7 + particle.phase) * h * 0.012;
+          drawMethodologyDot(context, point.x, y, particle.size * 0.62, 0.38);
+        });
+      }
+
+      function drawMethodologySystems(clock) {
+        methodologySystems.forEach((system) => drawMethodologySystem(system, clock));
+      }
+
+      function isNarrow() {
+        return (shellEl.clientWidth / shellEl.clientHeight <= 1.45) || shellEl.clientWidth <= 820 || shellEl.clientHeight <= 520;
+      }
+
+      function resolveState(name) {
+        const base = STATES[name];
+        return isNarrow() ? { ...base, ...(MOBILE_STATES[name] || {}) } : base;
+      }
+
+      const isTouchDevice = () => window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 1;
+      let mobileBypassed = false;
+
+      function syncOrientationLock() {
+        if (!isTouchDevice() || mobileBypassed) {
+          orientationLocked = false;
+          document.body.classList.remove("is-orientation-locked");
+          shellEl.setAttribute("aria-hidden", "false");
+          return;
+        }
+        const isPortrait = window.innerHeight > window.innerWidth;
+        const cardRotate = document.getElementById("lockCardRotate");
+        const cardDesktop = document.getElementById("lockCardDesktop");
+        if (isPortrait) {
+          cardRotate.style.display = "";
+          cardDesktop.style.display = "none";
+        } else {
+          cardRotate.style.display = "none";
+          cardDesktop.style.display = "";
+        }
+        orientationLocked = true;
+        document.body.classList.add("is-orientation-locked");
+        shellEl.setAttribute("aria-hidden", "true");
+      }
+
+      document.getElementById("lockBypassBtn") && document.getElementById("lockBypassBtn").addEventListener("click", () => {
+        mobileBypassed = true;
+        syncOrientationLock();
+      });
+
+      function resize() {
+        const rect = shellEl.getBoundingClientRect();
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = Math.max(1, rect.width);
+        height = Math.max(1, rect.height);
+        const baseScale = Math.min(width / 1920, height / 1080);
+        const layoutScale = clamp(baseScale, 0.42, 1);
+        const titleScale = clamp(baseScale, 0.42, 1);
+        const bodyScale = clamp(baseScale, 0.48, 1);
+        const uiScale = clamp(baseScale, 0.48, 1);
+        const contentScale = clamp(baseScale, 0.48, 1);
+        const contentWidthScale = clamp(1 + (1 - baseScale) * 0.05, 1, 1.06);
+        shellEl.style.setProperty("--layout-scale", String(layoutScale));
+        shellEl.style.setProperty("--title-scale", String(titleScale));
+        shellEl.style.setProperty("--body-scale", String(bodyScale));
+        shellEl.style.setProperty("--ui-scale", String(uiScale));
+        shellEl.style.setProperty("--content-scale", String(contentScale));
+        shellEl.style.setProperty("--content-width-scale", String(contentWidthScale));
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        resizeFrentesSystems();
+        resizeMethodologySystems();
+      }
+
+      function setState(name) {
+        if (!STATES[name]) return;
+        activeState = name;
+        stateTime = 0;
+        Object.assign(target, resolveState(name));
+      }
+
+      function drawAtmosphere() {
+        const cx = width * visual.x;
+        const cy = height * visual.y;
+        const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(width, height) * 0.64);
+        halo.addColorStop(0, `rgba(255, 250, 240, ${0.075 * visual.glow})`);
+        halo.addColorStop(0.24, "rgba(145, 137, 124, 0.042)");
+        halo.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = halo;
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.save();
+        ctx.globalAlpha = 0.26 * visual.glow;
+        ctx.translate(width * 0.5, height * 0.8);
+        ctx.scale(1, 0.16);
+        const floor = ctx.createRadialGradient(0, 0, 0, 0, 0, width * 0.32);
+        floor.addColorStop(0, "rgba(255,255,255,0.16)");
+        floor.addColorStop(0.42, "rgba(255,255,255,0.045)");
+        floor.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = floor;
+        ctx.beginPath();
+        ctx.arc(0, 0, width * 0.32, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawOrb(x, y, size, alpha = 1, squash = 1) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(1, squash);
+
+        ctx.save();
+        ctx.translate(0, size * 0.88);
+        ctx.scale(1.34, 0.34);
+        const shadow = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 1.05);
+        shadow.addColorStop(0, `rgba(0, 0, 0, ${0.44 * alpha})`);
+        shadow.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = shadow;
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 1.02, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.globalAlpha = alpha;
+        const glow = ctx.createRadialGradient(0, 0, size * 0.35, 0, 0, size * 1.75);
+        glow.addColorStop(0, "rgba(255,255,255,0.3)");
+        glow.addColorStop(0.32, "rgba(241,236,226,0.12)");
+        glow.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 1.75, 0, Math.PI * 2);
+        ctx.fill();
+
+        const body = ctx.createRadialGradient(-size * 0.28, -size * 0.42, size * 0.08, 0, 0, size * 1.12);
+        body.addColorStop(0, "#ffffff");
+        body.addColorStop(0.16, "#f2efe8");
+        body.addColorStop(0.44, "#d6d2cb");
+        body.addColorStop(0.78, "#8d8981");
+        body.addColorStop(1, "#4a4741");
+        ctx.fillStyle = body;
+        ctx.beginPath();
+        ctx.arc(0, 0, size, 0, Math.PI * 2);
+        ctx.fill();
+
+        const rim = ctx.createLinearGradient(-size, -size, size, size);
+        rim.addColorStop(0, "rgba(255,255,255,0.58)");
+        rim.addColorStop(0.45, "rgba(255,255,255,0)");
+        rim.addColorStop(1, "rgba(255,255,255,0.1)");
+        ctx.strokeStyle = rim;
+        ctx.lineWidth = Math.max(1.1, size * 0.018);
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.992, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+            function particleTarget(p, index, count) {
+        const cx = width * visual.x;
+        const cy = height * visual.y;
+        const orbit = Math.min(width, height) * (0.12 + visual.spread * 0.15);
+        const angle = p.angle + time * 0.08;
+
+        if (visual.mode === "central_orbit_3_pillars") {
+          const orbitRadius = Math.min(width, height) * 0.20;
+          const speed = 0.10 + index * 0.05;
+          const orbitAngle = p.angle + time * speed;
+          const tilt = 0.25;
+          return {
+            x: cx + Math.cos(orbitAngle) * orbitRadius,
+            y: cy + Math.sin(orbitAngle) * orbitRadius * tilt,
+            a: 0.85
+          };
+        }
+
+        if (visual.mode === "five_section_map") {
+          const stepAngle = (index / count) * Math.PI * 2 + time * 0.04;
+          const orbitRadius = Math.min(width, height) * 0.22;
+          return {
+            x: cx + Math.cos(stepAngle) * orbitRadius,
+            y: cy + Math.sin(stepAngle) * orbitRadius * 0.75,
+            a: 0.9
+          };
+        }
+
+        if (visual.mode === "core_convergence") {
+          const orbitRadius = visual.size + 15 + Math.sin(time * 0.8 + index) * 6;
+          const orbitAngle = p.angle + time * 0.15;
+          return {
+            x: cx + Math.cos(orbitAngle) * orbitRadius,
+            y: cy + Math.sin(orbitAngle) * orbitRadius * 0.5,
+            a: 0.75
+          };
+        }
+
+        if (visual.mode === "three_pillar_network") {
+          const ang = (index / count) * Math.PI * 2 + time * 0.08;
+          const orbitRadius = Math.min(width, height) * 0.22;
+          return {
+            x: cx + Math.cos(ang) * orbitRadius,
+            y: cy + Math.sin(ang) * orbitRadius * 0.35,
+            a: 0.9
+          };
+        }
+
+        if (visual.mode === "distributed_ecosystem") {
+          const radius = Math.min(width, height) * (0.15 + p.radius * visual.spread * 0.28);
+          const isFixed = index % 3 === 0;
+          const pulseSpeed = 1.2 + (index % 3) * 0.6;
+          const pulseVal = isFixed ? 0 : Math.sin(time * pulseSpeed + index) * 0.08;
+          const ang = p.angle + time * 0.015 + pulseVal;
+          return {
+            x: cx + Math.cos(ang) * radius,
+            y: cy + Math.sin(ang * 0.8) * radius * 0.78,
+            a: 0.45 + Math.sin(time * 2.5 + index) * 0.35
+          };
+        }
+
+        if (visual.mode === "case_highlight_orbit") {
+          const orbitRadius = Math.min(width, height) * 0.22;
+          const speed = 0.12;
+          const orbitAngle = p.angle + time * speed;
+          return {
+            x: cx + Math.cos(orbitAngle) * orbitRadius,
+            y: cy + Math.sin(orbitAngle) * orbitRadius * 0.4,
+            a: 0.85
+          };
+        }
+
+        if (visual.mode === "stable_client_grid") {
+          const cols = 4;
+          const r = Math.floor(index / cols);
+          const c = index % cols;
+          const spacingX = Math.min(width, height) * 0.12;
+          const spacingY = Math.min(width, height) * 0.10;
+          const startX = cx - ((cols - 1) * spacingX) / 2;
+          const startY = cy - spacingY / 2;
+          return {
+            x: startX + c * spacingX + Math.sin(time * 0.5 + index) * 4,
+            y: startY + r * spacingY + Math.cos(time * 0.5 + index) * 4,
+            a: 0.9
+          };
+        }
+
+        if (visual.mode === "service_expansion") {
+          const radius = Math.min(width, height) * (0.14 + p.radius * visual.spread * 0.16);
+          const ang = p.angle + time * 0.04;
+          return {
+            x: cx + Math.cos(ang) * radius * 1.5,
+            y: cy + Math.sin(ang) * radius * 0.9,
+            a: 0.85
+          };
+        }
+
+        if (visual.mode === "pre_process_alignment") {
+          const offset = (index - (count - 1) / 2) * (Math.min(width, height) * 0.06);
+          return {
+            x: cx + offset + Math.sin(time * 1.5 + index) * 3,
+            y: cy + Math.cos(time * 1.2 + index) * 5,
+            a: 0.85
+          };
+        }
+
+        if (visual.mode === "guided_process_flow") {
+          const segment = (time * 0.10 + (index / count)) % 1.0;
+          const fx = width * (-0.1 + segment * 1.2);
+          const fy = cy + Math.sin(segment * Math.PI * 2) * (Math.min(width, height) * 0.12);
+          return {
+            x: fx,
+            y: fy,
+            a: (segment < 0.08 || segment > 0.92) ? 0 : 0.9
+          };
+        }
+
+        if (visual.mode === "process_to_modules") {
+          const numModules = 4;
+          const moduleIndex = index % numModules;
+          const moduleAngle = (moduleIndex / numModules) * Math.PI * 2 + time * 0.05;
+          const moduleDist = Math.min(width, height) * 0.22;
+          const mx = cx + Math.cos(moduleAngle) * moduleDist;
+          const my = cy + Math.sin(moduleAngle) * moduleDist * 0.6;
+          
+          const localAngle = p.angle + time * 0.25;
+          const localRadius = Math.min(width, height) * 0.04 * (1 + (index % 3) * 0.3);
+          
+          return {
+            x: mx + Math.cos(localAngle) * localRadius,
+            y: my + Math.sin(localAngle) * localRadius,
+            a: 0.85
+          };
+        }
+
+        if (visual.mode === "territorial_expansion") {
+          const rx = Math.min(width, height) * (0.3 + p.radius * visual.spread * 0.5);
+          const angle = p.angle + time * 0.06;
+          return {
+            x: cx + Math.cos(angle) * rx * 2.2,
+            y: cy + Math.sin(angle) * rx * 0.15,
+            a: 0.85
+          };
+        }
+
+        if (visual.mode === "curation_convergence") {
+          const cycle = time % 12;
+          let stage = 0; 
+          if (cycle < 4) {
+            stage = 0;
+          } else if (cycle < 8) {
+            stage = 1;
+          } else {
+            stage = 2;
+          }
+
+          if (stage === 0) {
+            const radius = Math.min(width, height) * (0.2 + p.radius * visual.spread * 0.25);
+            const angle = p.angle + time * 0.12;
+            return {
+              x: cx + Math.cos(angle) * radius,
+              y: cy + Math.sin(angle) * radius * 0.8,
+              a: 0.7,
+              sizeScale: 0.6
+            };
+          } else if (stage === 1) {
+            const isShortlist = index < 6;
+            const radius = Math.min(width, height) * (0.12 + p.radius * visual.spread * 0.15);
+            const angle = p.angle + time * 0.08;
+            return {
+              x: cx + Math.cos(angle) * radius,
+              y: cy + Math.sin(angle) * radius * 0.8,
+              a: isShortlist ? 0.9 : 0.1,
+              sizeScale: isShortlist ? 0.9 : 0.3
+            };
+          } else {
+            const isFinal = index < 3;
+            const radius = Math.min(width, height) * 0.14;
+            const angle = (index / 3) * Math.PI * 2 + time * 0.05;
+            return {
+              x: cx + Math.cos(angle) * radius,
+              y: cy + Math.sin(angle) * radius * 0.8,
+              a: isFinal ? 1.0 : 0.0,
+              sizeScale: isFinal ? 1.5 : 0.0
+            };
+          }
+        }
+
+        if (visual.mode === "dual_online_offline_orbit") {
+          const isOnline = index % 2 === 0;
+          const radius = Math.min(width, height) * (0.18 + (index % 3) * 0.04);
+          if (isOnline) {
+            const angle = p.angle + time * 0.15;
+            return {
+              x: cx + Math.cos(angle) * radius * 1.3,
+              y: cy + Math.sin(angle) * radius * 0.3,
+              a: 0.9,
+              sizeScale: 0.7
+            };
+          } else {
+            const angle = -p.angle - time * 0.04;
+            return {
+              x: cx + Math.cos(angle) * radius * 1.6,
+              y: cy + Math.sin(angle) * radius * -0.4,
+              a: 0.8,
+              sizeScale: 1.1
+            };
+          }
+        }
+
+        if (visual.mode === "anchored_touchpoints") {
+          const ang = (index / count) * Math.PI * 2 + 0.5;
+          const radius = Math.min(width, height) * 0.26;
+          const pulse = 1.0 + Math.max(0, Math.sin(time * 1.5 + index * 2.0)) * 0.6;
+          return {
+            x: cx + Math.cos(ang) * radius,
+            y: cy + Math.sin(ang) * radius * 0.7,
+            a: 0.9,
+            sizeScale: pulse
+          };
+        }
+
+        // --- NEW MODES (Slides 26-30 & 31-33) ---
+        if (visual.mode === "digital_distribution_network") {
+          const radius = Math.min(width, height) * (0.2 + p.radius * visual.spread * 0.25);
+          const orbitAngle = p.angle + time * 0.15 * p.drift;
+          const tx = cx + Math.cos(orbitAngle) * radius;
+          const ty = cy + Math.sin(orbitAngle) * radius * 0.65;
+          
+          const active = Math.sin(time * 6 + index * 2.3) > 0.3;
+          const targetAlpha = active ? 0.95 : 0.25;
+          const targetSize = active ? p.size * 1.1 : p.size * 0.6;
+          
+          return {
+            x: tx,
+            y: ty,
+            a: targetAlpha,
+            size: targetSize,
+            isBack: ty < cy
+          };
+        }
+
+        if (visual.mode === "scope_layers") {
+          const numLayers = 5;
+          const layer = index % numLayers;
+          const inLayerIndex = Math.floor(index / numLayers);
+          const countInLayer = Math.ceil(count / numLayers);
+          
+          const ySpacing = Math.min(width, height) * 0.055;
+          const targetY = cy + (layer - (numLayers - 1) / 2) * ySpacing;
+          
+          const xSpacing = Math.min(width, height) * 0.08;
+          const targetX = cx + (inLayerIndex - (countInLayer - 1) / 2) * xSpacing;
+          
+          const delay = layer * 0.35;
+          const entryProgress = clamp((stateTime - delay) * 2.0, 0, 1);
+          const easeProgress = 1 - Math.pow(1 - entryProgress, 3);
+          
+          const tx = lerp(cx - width * 0.08, targetX, easeProgress);
+          const ty = targetY;
+          
+          return {
+            x: tx,
+            y: ty,
+            a: 0.85 * entryProgress,
+            size: p.size * (0.85 + 0.15 * Math.sin(time * 2 + index)),
+            isBack: false
+          };
+        }
+
+        if (visual.mode === "operational_grid") {
+          const cols = 4;
+          const rows = 3;
+          const col = index % cols;
+          const row = Math.floor(index / cols) % rows;
+          
+          const xSpacing = Math.min(width, height) * 0.085;
+          const ySpacing = Math.min(width, height) * 0.065;
+          
+          const targetX = cx + (col - (cols - 1) / 2) * xSpacing;
+          const targetY = cy + (row - (rows - 1) / 2) * ySpacing;
+          
+          const entryProgress = clamp(stateTime * 1.5 - index * 0.06, 0, 1);
+          const easeGrid = 1 - Math.pow(1 - entryProgress, 3);
+          
+          const freeOrbitRadius = Math.min(width, height) * 0.22;
+          const freeAngle = p.angle + time * 0.05;
+          const freeX = cx + Math.cos(freeAngle) * freeOrbitRadius;
+          const freeY = cy + Math.sin(freeAngle) * freeOrbitRadius * 0.5;
+          
+          const tx = lerp(freeX, targetX, easeGrid);
+          const ty = lerp(freeY, targetY, easeGrid);
+          
+          return {
+            x: tx,
+            y: ty,
+            a: 0.9,
+            size: p.size * 0.75,
+            isBack: false
+          };
+        }
+
+        if (visual.mode === "connected_tool_panel") {
+          const ang = (index / count) * Math.PI * 2;
+          const radius = Math.min(width, height) * 0.25;
+          const tx = cx + Math.cos(ang) * radius;
+          const ty = cy + Math.sin(ang) * radius * 0.75;
+          
+          const delay = index * 0.35;
+          const active = stateTime > delay;
+          const lightProgress = active ? clamp((stateTime - delay) * 3, 0, 1) : 0;
+          const pulse = active ? Math.sin(time * 3.5 + index) * 0.12 : 0;
+          
+          return {
+            x: tx,
+            y: ty,
+            a: lerp(0.2, 0.9, lightProgress) + pulse,
+            size: p.size * (active ? 1.15 : 0.75),
+            isBack: ty < cy
+          };
+        }
+
+        if (visual.mode === "setup_to_alwayson_pairs") {
+          const pair = Math.floor(index / 2);
+          const isAlwaysOn = index % 2 === 1;
+          const y = cy + (pair - 0.5) * (Math.min(width, height) * 0.18);
+          const x = cx + (isAlwaysOn ? 1 : -1) * (Math.min(width, height) * 0.14);
+          
+          return {
+            x: x,
+            y: y,
+            a: 0.9,
+            size: p.size * (isAlwaysOn ? 1.2 : 0.9),
+            isBack: false
+          };
+        }
+
+        if (visual.mode === "launch_contract_layers") {
+          const numLayers = 3;
+          const layer = index % numLayers;
+          const inLayerIndex = Math.floor(index / numLayers);
+          const countInLayer = Math.ceil(count / numLayers);
+          
+          const ySpacing = Math.min(width, height) * 0.08;
+          const targetY = cy + (layer - (numLayers - 1) / 2) * ySpacing;
+          
+          const xSpacing = Math.min(width, height) * 0.12;
+          const targetX = cx + (inLayerIndex - (countInLayer - 1) / 2) * xSpacing;
+          
+          return {
+            x: targetX,
+            y: targetY,
+            a: 0.9,
+            size: p.size * 0.9,
+            isBack: false
+          };
+        }
+
+        if (visual.mode === "final_ecosystem_convergence") {
+          const radius = visual.size + 15 + Math.sin(time * 2.0 + index) * 5;
+          const orbitAngle = index * (Math.PI * 2 / count) + time * 0.2;
+          return {
+            x: cx + Math.cos(orbitAngle) * radius,
+            y: cy + Math.sin(orbitAngle) * radius * 0.4,
+            a: 0.9,
+            isBack: (cy + Math.sin(orbitAngle) * radius * 0.4) < cy
+          };
+        }
+
+        if (visual.mode === "network") {
+          const radius = Math.min(width, height) * (0.16 + p.radius * visual.spread * 0.22);
+          const drift = Math.sin(time * p.drift + p.phase) * radius * 0.16;
+          return {
+            x: cx + Math.cos(angle * 0.9) * (radius + drift),
+            y: cy + Math.sin(angle * 1.2) * (radius * 0.58 + drift * 0.35),
+            a: 0.85
+          };
+        }
+
+        if (visual.mode === "constellation") {
+          const radius = Math.min(width, height) * (0.18 + p.radius * visual.spread * 0.3);
+          return {
+            x: cx + Math.cos(p.angle * 3.1) * radius,
+            y: cy + Math.sin(p.angle * 2.7) * radius * 0.8,
+            a: 0.8
+          };
+        }
+
+        if (visual.mode === "flow") {
+          const prog = (time * 0.15 + (index / count)) % 1.0;
+          const fx = width * (-0.1 + prog * 1.2);
+          const fy = cy + Math.sin(prog * Math.PI * 2) * (Math.min(width, height) * 0.15);
+          return { x: fx, y: fy, a: (prog < 0.1 || prog > 0.9) ? 0 : 0.8 };
+        }
+
+        if (visual.mode === "territory") {
+          const orbitRadius = Math.min(width, height) * (0.25 + visual.spread * 0.25);
+          const orbitAngle = p.angle + time * 0.1;
+          return {
+            x: cx + Math.cos(orbitAngle) * orbitRadius * 2.0,
+            y: cy + Math.sin(orbitAngle) * orbitRadius * 0.2,
+            a: 0.85
+          };
+        }
+
+        if (visual.mode === "convergence") {
+          const rad = Math.min(width, height) * 0.05 + Math.abs(Math.sin(time * 0.5 + p.angle)) * (Math.min(width, height) * 0.25);
+          return {
+            x: cx + Math.cos(p.angle * 5 + time * 0.2) * rad,
+            y: cy + Math.sin(p.angle * 5 + time * 0.2) * rad,
+            a: 0.7
+          };
+        }
+
+        if (visual.mode === "monument") {
+          const orbitRadius = Math.min(width, height) * (0.35 + visual.spread * 0.2);
+          const orbitAngle = p.angle + time * 0.02;
+          return {
+            x: cx + Math.cos(orbitAngle) * orbitRadius,
+            y: cy + Math.sin(orbitAngle) * orbitRadius * 0.4,
+            a: 0.6
+          };
+        }
+
+        if (visual.mode === "touchpoints") {
+          const ang = (index / count) * Math.PI * 2;
+          const radius = Math.min(width, height) * 0.28;
+          const pulse = Math.sin(time * 2 + index) * 12;
+          return {
+            x: cx + Math.cos(ang) * (radius + pulse),
+            y: cy + Math.sin(ang) * (radius + pulse) * 0.6,
+            a: 0.85
+          };
+        }
+
+        if (visual.mode === "network-pulse") {
+          const radius = Math.min(width, height) * (0.18 + p.radius * visual.spread * 0.25);
+          return {
+            x: cx + Math.cos(p.angle + time * 0.08) * radius,
+            y: cy + Math.sin((p.angle + time * 0.08) * 1.15) * radius * 0.78,
+            a: 0.7 + Math.sin(time * 3 + index) * 0.3
+          };
+        }
+
+        if (visual.mode === "funnel") {
+          const t = (time * 0.12 + (index / count)) % 1.0;
+          const startY = -0.1 * height;
+          const endY = 1.1 * height;
+          const fy = startY + t * (endY - startY);
+          const yDist = Math.abs(fy - cy) / (height * 0.5);
+          const scatter = p.radius * width * 0.4 * yDist;
+          const fx = cx + Math.cos(p.angle * 10) * scatter;
+          return { x: fx, y: fy, a: (t < 0.1 || t > 0.9) ? 0 : 0.8 };
+        }
+
+        const ring = index % 3;
+        const ringRadius = orbit * (0.92 + ring * 0.42);
+        const orbitSpeed = 0.16 + ring * 0.05;
+        const orbitAngle = p.angle + time * orbitSpeed + ring * 0.7;
+        const tilt = 0.4 + ring * 0.14;
+        return {
+          x: cx + Math.cos(orbitAngle) * ringRadius,
+          y: cy + Math.sin(orbitAngle) * ringRadius * tilt
+        };
+      }      function drawParticles() {
+        const count = Math.round(visual.points);
+        if (count <= 0) return;
+        const targets = particles.slice(0, count).map((p, i) => particleTarget(p, i, count));
+        const cx = width * visual.x;
+        const cy = height * visual.y;
+        const mode = visual.mode;
+
+        // Custom connection lines based on mode
+        if (mode === "network" || mode === "network-pulse") {
+          ctx.save();
+          const maxDist = Math.min(width, height) * 0.18;
+          for (let i = 0; i < targets.length; i++) {
+            for (let j = i + 1; j < targets.length; j++) {
+              const a = targets[i];
+              const b = targets[j];
+              const dist = Math.hypot(a.x - b.x, a.y - b.y);
+              if (dist > maxDist) continue;
+              const pulse = mode === "network-pulse" ? (Math.sin(time * 4 + i + j) * 0.5 + 0.5) : 1.0;
+              ctx.strokeStyle = "rgba(255,255,255,1)";
+              ctx.globalAlpha = (1 - dist / maxDist) * 0.35 * pulse * visual.glow;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+            }
+          }
+          // Center lines
+          ctx.strokeStyle = "rgba(255,255,255,1)";
+          ctx.globalAlpha = 0.22 * visual.glow;
+          targets.forEach((t) => {
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(t.x, t.y);
+            ctx.stroke();
+          });
+          ctx.restore();
+        } else if (mode === "five_section_map" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(targets[0].x, targets[0].y);
+          for (let i = 1; i < targets.length; i++) {
+            ctx.lineTo(targets[i].x, targets[i].y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          ctx.restore();
+        } else if (mode === "three_pillar_network" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+          ctx.lineWidth = 1.2;
+          targets.forEach(pt => {
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(pt.x, pt.y);
+            ctx.stroke();
+          });
+          ctx.beginPath();
+          ctx.moveTo(targets[0].x, targets[0].y);
+          for (let i = 1; i < targets.length; i++) {
+            ctx.lineTo(targets[i].x, targets[i].y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+          ctx.restore();
+        } else if (mode === "distributed_ecosystem" && count > 0) {
+          ctx.save();
+          const maxDist = Math.min(width, height) * 0.18;
+          ctx.lineWidth = 0.8;
+          for (let i = 0; i < targets.length; i++) {
+            for (let j = i + 1; j < targets.length; j++) {
+              const a = targets[i];
+              const b = targets[j];
+              const dist = Math.hypot(a.x - b.x, a.y - b.y);
+              if (dist < maxDist) {
+                const pulse = Math.sin(time * 3.5 + i + j) * 0.5 + 0.5;
+                ctx.strokeStyle = "rgba(255, 255, 255, 1)";
+                ctx.globalAlpha = (1 - dist / maxDist) * 0.28 * pulse * visual.glow;
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+              }
+            }
+          }
+          ctx.restore();
+        } else if (mode === "case_highlight_orbit" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, Math.min(width, height) * 0.22, Math.min(width, height) * 0.088, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        } else if (mode === "stable_client_grid" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+          ctx.lineWidth = 1.0;
+          for (let i = 0; i < targets.length; i++) {
+            for (let j = i + 1; j < targets.length; j++) {
+              const a = targets[i];
+              const b = targets[j];
+              if (Math.hypot(a.x - b.x, a.y - b.y) < Math.min(width, height) * 0.15) {
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+              }
+            }
+          }
+          ctx.restore();
+        } else if ((mode === "touchpoints" || mode === "anchored_touchpoints") && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+          ctx.lineWidth = 1.2;
+          targets.forEach(pt => {
+            if (pt.sizeScale !== undefined && pt.sizeScale <= 0.01) return;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(pt.x, pt.y);
+            ctx.stroke();
+          });
+          ctx.restore();
+        } else if (mode === "flow" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          const sortedTargets = [...targets].sort((a,b) => a.x - b.x);
+          ctx.moveTo(sortedTargets[0].x, sortedTargets[0].y);
+          for(let i=1; i<sortedTargets.length; i++) {
+            ctx.lineTo(sortedTargets[i].x, sortedTargets[i].y);
+          }
+          ctx.stroke();
+          ctx.restore();
+        } else if (mode === "process_to_modules" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+          ctx.lineWidth = 1;
+          const numModules = 4;
+          for (let m = 0; m < numModules; m++) {
+            const moduleAngle = (m / numModules) * Math.PI * 2 + time * 0.05;
+            const moduleDist = Math.min(width, height) * 0.22;
+            const mx = cx + Math.cos(moduleAngle) * moduleDist;
+            const my = cy + Math.sin(moduleAngle) * moduleDist * 0.6;
+            
+            ctx.beginPath();
+            ctx.ellipse(mx, my, Math.min(width, height) * 0.06, Math.min(width, height) * 0.04, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(mx, my);
+            ctx.stroke();
+          }
+          ctx.restore();
+        } else if (mode === "territorial_expansion" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+          ctx.lineWidth = 0.8;
+          const sorted = [...targets].sort((a, b) => a.x - b.x);
+          ctx.beginPath();
+          ctx.moveTo(sorted[0].x, sorted[0].y);
+          for (let i = 1; i < sorted.length; i++) {
+            ctx.lineTo(sorted[i].x, sorted[i].y);
+          }
+          ctx.stroke();
+          ctx.restore();
+        } else if (mode === "curation_convergence" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+          ctx.lineWidth = 1.0;
+          const cycle = time % 12;
+          if (cycle >= 4 && cycle < 8) {
+            const activeNodes = targets.filter(t => t.sizeScale > 0.1);
+            for (let i = 0; i < activeNodes.length; i++) {
+              for (let j = i + 1; j < activeNodes.length; j++) {
+                ctx.beginPath();
+                ctx.moveTo(activeNodes[i].x, activeNodes[i].y);
+                ctx.lineTo(activeNodes[j].x, activeNodes[j].y);
+                ctx.stroke();
+              }
+            }
+          } else if (cycle >= 8) {
+            const activeNodes = targets.filter(t => t.sizeScale > 0.1);
+            if (activeNodes.length >= 3) {
+              ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.moveTo(activeNodes[0].x, activeNodes[0].y);
+              ctx.lineTo(activeNodes[1].x, activeNodes[1].y);
+              ctx.lineTo(activeNodes[2].x, activeNodes[2].y);
+              ctx.closePath();
+              ctx.stroke();
+
+              activeNodes.forEach(t => {
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(t.x, t.y);
+                ctx.stroke();
+              });
+            }
+          }
+          ctx.restore();
+        } else if (mode === "dual_online_offline_orbit" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, Math.min(width, height) * 0.28, Math.min(width, height) * 0.08, -0.2, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.26)";
+          ctx.lineWidth = 1.0;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, Math.min(width, height) * 0.24, Math.min(width, height) * 0.06, 0.2, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+        
+        // --- NEW MODES DRAWINGS ---
+        else if (mode === "digital_distribution_network" && count > 0) {
+          ctx.save();
+          targets.forEach((pt, i) => {
+            const isConnected = Math.sin(time * 6 + i * 2.3) > 0.3;
+            if (isConnected) {
+              const pulsePos = (time * 1.5 + i * 0.25) % 1.0;
+              ctx.strokeStyle = `rgba(255, 255, 255, ${0.12 + 0.18 * Math.sin(time * 8 + i)})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(cx, cy);
+              ctx.lineTo(pt.x, pt.y);
+              ctx.stroke();
+              
+              const px = lerp(cx, pt.x, pulsePos);
+              const py = lerp(cy, pt.y, pulsePos);
+              ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+              ctx.beginPath();
+              ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          });
+          ctx.restore();
+        } else if (mode === "scope_layers" && count > 0) {
+          ctx.save();
+          const numLayers = 5;
+          const ySpacing = Math.min(width, height) * 0.055;
+          const plateWidth = Math.min(width, height) * 0.22;
+          for (let layer = 0; layer < numLayers; layer++) {
+            const delay = layer * 0.35;
+            const entryProgress = clamp((stateTime - delay) * 2.0, 0, 1);
+            if (entryProgress <= 0) continue;
+            const targetY = cy + (layer - (numLayers - 1) / 2) * ySpacing;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.07 * entryProgress})`;
+            ctx.fillStyle = `rgba(255, 255, 255, ${0.012 * entryProgress})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.ellipse(cx, targetY, plateWidth, ySpacing * 0.35, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          }
+          ctx.restore();
+        } else if (mode === "operational_grid" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = `rgba(255, 255, 255, ${0.06 * clamp(stateTime * 1.2, 0, 1)})`;
+          ctx.lineWidth = 1;
+          const cols = 4;
+          const rows = 3;
+          const xSpacing = Math.min(width, height) * 0.085;
+          const ySpacing = Math.min(width, height) * 0.065;
+          for (let c = 0; c < cols; c++) {
+            const gx = cx + (c - (cols - 1) / 2) * xSpacing;
+            ctx.beginPath();
+            ctx.moveTo(gx, cy - ySpacing);
+            ctx.lineTo(gx, cy + ySpacing);
+            ctx.stroke();
+          }
+          for (let r = 0; r < rows; r++) {
+            const gy = cy + (r - (rows - 1) / 2) * ySpacing;
+            ctx.beginPath();
+            ctx.moveTo(cx - 1.5 * xSpacing, gy);
+            ctx.lineTo(cx + 1.5 * xSpacing, gy);
+            ctx.stroke();
+          }
+          ctx.restore();
+        } else if (mode === "connected_tool_panel" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.arc(cx, cy, visual.size * 1.35, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(cx, cy, visual.size * 1.7, 0, Math.PI * 2);
+          ctx.stroke();
+
+          targets.forEach((pt, i) => {
+            const delay = i * 0.35;
+            const active = stateTime > delay;
+            ctx.strokeStyle = active ? `rgba(255, 255, 255, ${0.14 + 0.14 * Math.sin(time * 4 + i)})` : "rgba(255, 255, 255, 0.04)";
+            ctx.lineWidth = active ? 1.2 : 0.8;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(pt.x, pt.y);
+            ctx.stroke();
+            if (active) {
+              const pulsePos = (time * 1.2 + i * 0.3) % 1.0;
+              const px = lerp(cx, pt.x, pulsePos);
+              const py = lerp(cy, pt.y, pulsePos);
+              ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+              ctx.beginPath();
+              ctx.arc(px, py, 2, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          });
+          ctx.restore();
+        } else if (mode === "setup_to_alwayson_pairs" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+          ctx.lineWidth = 1.5;
+          if (targets.length >= 2) {
+            ctx.beginPath();
+            ctx.moveTo(targets[0].x, targets[0].y);
+            ctx.lineTo(targets[1].x, targets[1].y);
+            ctx.stroke();
+          }
+          if (targets.length >= 4) {
+            ctx.beginPath();
+            ctx.moveTo(targets[2].x, targets[2].y);
+            ctx.lineTo(targets[3].x, targets[3].y);
+            ctx.stroke();
+          }
+          ctx.restore();
+        } else if (mode === "launch_contract_layers" && count > 0) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+          ctx.lineWidth = 1;
+          const numLayers = 3;
+          const ySpacing = Math.min(width, height) * 0.08;
+          for (let layer = 0; layer < numLayers; layer++) {
+            const targetY = cy + (layer - (numLayers - 1) / 2) * ySpacing;
+            ctx.beginPath();
+            ctx.moveTo(cx - Math.min(width, height) * 0.25, targetY);
+            ctx.lineTo(cx + Math.min(width, height) * 0.25, targetY);
+            ctx.stroke();
+          }
+          ctx.restore();
+        } else if (mode === "dual_partnership_orbit") {
+          ctx.save();
+          const entryProgress = clamp(stateTime * 1.2, 0, 1);
+          const easeEntry = 1 - Math.pow(1 - entryProgress, 3);
+          const orbitRadius = lerp(width * 0.35, Math.min(width, height) * 0.18, easeEntry);
+          const tilt = 0.3;
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.14)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, orbitRadius, orbitRadius * tilt, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Render particles
+        targets.forEach((t, index) => {
+          const sizeScale = t.sizeScale !== undefined ? t.sizeScale : 1.0;
+          if (sizeScale <= 0.01) return;
+          const pulse = 0.68 + Math.sin(time * 1.6 + particles[index].phase) * 0.32;
+          const size = (t.size !== undefined ? t.size : particles[index].size * pulse) * sizeScale;
+          ctx.save();
+          ctx.fillStyle = "rgba(255,255,255,0.96)";
+          ctx.shadowBlur = 16 * visual.glow;
+          ctx.shadowColor = "rgba(255,255,255,0.45)";
+          ctx.beginPath();
+          ctx.arc(t.x, t.y, size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        });
+      }      function render() {
+        Object.keys(target).forEach((key) => {
+          if (typeof target[key] === "number") visual[key] = lerp(visual[key], target[key], 0.085);
+          else visual[key] = target[key];
+        });
+
+        ctx.clearRect(0, 0, width, height);
+        drawAtmosphere();
+
+        const useSlideSpecificVisual = activeState === "transitionAlignment" || activeState === "methodJourney";
+        if (!useSlideSpecificVisual) {
+          drawParticles();
+          
+          const scale = isNarrow() ? 0.9 : 0.55;
+          const squash = 0.98 + Math.sin(time * 0.7) * 0.015;
+          if (visual.mode === "dual_partnership_orbit") {
+            const cx = width * visual.x;
+            const cy = height * visual.y;
+            const entryProgress = clamp(stateTime * 1.2, 0, 1);
+            const easeEntry = 1 - Math.pow(1 - entryProgress, 3);
+            const orbitRadius = lerp(width * 0.35, Math.min(width, height) * 0.18, easeEntry);
+            const speed = 0.5;
+            const orbitAngle = time * speed;
+            const tilt = 0.3;
+            const x1 = cx + Math.cos(orbitAngle) * orbitRadius;
+            const y1 = cy + Math.sin(orbitAngle) * orbitRadius * tilt;
+            const x2 = cx - Math.cos(orbitAngle) * orbitRadius;
+            const y2 = cy - Math.sin(orbitAngle) * orbitRadius * tilt;
+            
+            const size1 = visual.size * scale; 
+            const size2 = visual.size * scale * 0.92; 
+            
+            if (y1 < y2) {
+              drawOrb(x1, y1, size1, visual.opacity, squash);
+              drawOrb(x2, y2, size2, visual.opacity, squash);
+            } else {
+              drawOrb(x2, y2, size2, visual.opacity, squash);
+              drawOrb(x1, y1, size1, visual.opacity, squash);
+            }
+          } else {
+            drawOrb(width * visual.x, height * visual.y, visual.size * scale, visual.opacity, squash);
+          }
+        }
+        
+        drawFrentesSystems(time);
+        drawMethodologySystems(time);
+
+        const dt = prefersReducedMotion ? 0.002 : 0.012;
+        time += dt;
+        stateTime += dt;
+        requestAnimationFrame(render);
+      }
+
+      function renderHeading(slide) {
+        const tag = slide.type === "cover" || slide.type === "section" || slide.type === "closing" ? "h1" : "h2";
+        return slide.title ? `<${tag}>${esc(slide.title)}</${tag}>` : "";
+      }
+
+      function renderIndex(items) {
+        return `<ul class="index-list">${items.map((item, i) => `<li><span><span class="mark">// ${String(i + 1).padStart(2, "0")}</span>${esc(item)}</span></li>`).join("")}</ul>`;
+      }
+
+      function renderPillars(pillars) {
+        const klass = pillars.length === 3 ? "pillar-grid pillar-grid--three" : "pillar-grid";
+        return `<div class="${klass}">${pillars.map((item) => `<article class="pillar-card"><strong>${esc(item.label)}</strong><p>${esc(item.descr)}</p></article>`).join("")}</div>`;
+      }
+
+      function renderStats(stats) {
+        return `<div class="stats-grid">${stats.map((item) => `<article class="stat-card"><strong>${esc(item.value)}</strong><span>${esc(item.label)}</span></article>`).join("")}</div>`;
+      }
+
+      function renderGallery(items) {
+        return `<div class="gallery-grid">${items.map((item) => {
+          if (/\.(png|svg|jpe?g|webp)$/i.test(item)) {
+            const filename = item.split("/").pop() || "logo";
+            const alt = filename.replace(/\.[^.]+$/, "");
+            return `<div class="gallery-item gallery-item--logo"><img src="${esc(item)}" alt="${esc(alt)}"></div>`;
+          }
+          return `<div class="gallery-item">${esc(item)}</div>`;
+        }).join("")}</div>`;
+      }
+
+      function renderSteps(steps) {
+        return `<div class="process-steps">${steps.map((item, i) => `<article class="process-step" data-step="// ${String(i + 1).padStart(2, "0")}"><strong>${esc(item.label)}</strong><p>${esc(item.descr)}</p></article>`).join("")}</div>`;
+      }
+
+      function renderContentList(items) {
+        let subIndex = 0;
+        const list = `<ul class="content-list">${items.map((item) => {
+          if (item.startsWith("##")) {
+            subIndex = 0;
+            const label = esc(item.slice(2).trim());
+            return `<li class="is-header">${label}</li>`;
+          } else if (item.startsWith("--")) {
+            subIndex++;
+            const label = esc(item.slice(2).trim());
+            return `<li class="is-sub">${label}</li>`;
+          } else {
+            const match = item.match(/^([^:]{2,40}):(.*)$/);
+            let content;
+            if (match) {
+              content = "<strong>" + esc(match[1].toUpperCase()) + ":</strong>" + esc(match[2]);
+            } else {
+              content = esc(item);
+            }
+            subIndex++;
+            return `<li><span class="mark">// ${String(subIndex).padStart(2, "0")}</span><span>${content}</span></li>`;
+          }
+        }).join("")}</ul>`;
+        return `<div class="content-scroll-wrap">
+          <div class="content-scroll-track"><div class="content-scroll-thumb"></div></div>
+          <div class="content-scroll-inner">${list}</div>
+          <div class="content-scroll-fade"></div>
+          <div class="content-scroll-more">
+            <div class="content-scroll-more-btn">
+              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="2,4 6,8 10,4"></polyline>
+              </svg>
+              scroll para ver mais
+            </div>
+          </div>
+        </div>`;
+      }
+
+      function renderPricing(items) {
+        return `<div class="pricing-list">${items.map((item) => `<div class="pricing-row"><strong>${esc(item.label)}</strong><span>${esc(item.value)}</span></div>`).join("")}</div>`;
+      }
+
+      function renderInlineBreaks(text) {
+        return esc(text).replace(/&lt;br&gt;/g, "<br>");
+      }
+
+      function renderFrentes(slide) {
+        return `
+          <div class="copy frentes-container" data-type="frentes">
+            ${slide.eyebrow ? `<p class="eyebrow">${esc(slide.eyebrow)}</p>` : ""}
+            ${renderHeading(slide)}
+            ${slide.text ? `<p class="frentes-intro">${esc(slide.text)}</p>` : ""}
+            <div class="frentes-grid">
+              ${slide.frentes.map((item, index) => `
+                <article class="frentes-col" style="--col-index:${index}">
+                  <div class="frentes-canvas-container">
+                    <canvas class="frentes-mini-canvas" data-system="${esc(item.system || item.title)}"></canvas>
+                  </div>
+                  <h3 class="frentes-col-title">${esc(item.title)}</h3>
+                  <ul class="frentes-col-list">
+                    ${item.items.map((entry) => `<li>${esc(entry)}</li>`).join("")}
+                  </ul>
+                </article>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderMethodology(slide) {
+        return `
+          <div class="copy methodology-container" data-type="methodology">
+            ${slide.eyebrow ? `<p class="eyebrow">${esc(slide.eyebrow)}</p>` : ""}
+            ${renderHeading(slide)}
+            ${slide.text ? `<p class="methodology-lead">${esc(slide.text)}</p>` : ""}
+            <div class="methodology-stage">
+              <canvas class="methodology-canvas"></canvas>
+              <div class="methodology-steps">
+                ${(slide.steps || []).map((step) => `<span class="methodology-step">${renderInlineBreaks(step)}</span>`).join("")}
+              </div>
+            </div>
+            <div class="methodology-blocks">
+              ${(slide.blocks || []).map((block) => `
+                <article class="methodology-block">
+                  <strong>${esc(block.title)}</strong>
+                  <span>${esc(block.descr)}</span>
+                </article>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderSquad(slide) {
+        const leaders = (slide.leaders && slide.leaders.length)
+          ? slide.leaders
+          : [
+              { name: "Tecnisa", role: "Cliente / Aprovação" },
+              { name: "Huddle", role: "Coordenação Geral" }
+            ];
+
+        return `
+          <div class="copy squad-container" data-type="squad">
+            ${slide.eyebrow ? `<p class="eyebrow">${esc(slide.eyebrow)}</p>` : ""}
+            ${renderHeading(slide)}
+            ${slide.text ? `<p class="squad-intro">${esc(slide.text)}</p>` : ""}
+            <div class="squad-stage">
+              <div class="squad-top-grid">
+                ${leaders.map((leader) => `
+                  <article class="squad-leader">
+                    <strong class="squad-leader-name">${esc(leader.name)}</strong>
+                    ${leader.role ? `<span class="squad-leader-role">${esc(leader.role)}</span>` : ""}
+                  </article>
+                `).join("")}
+              </div>
+              <div class="squad-grid">
+                ${(slide.frentes || []).map((item, index) => `
+                  <article class="squad-col" style="--col-index:${index}">
+                    <h3 class="squad-col-title">${esc(item.title)}</h3>
+                    <ul class="squad-col-list">
+                      ${(item.items || []).map((entry) => `<li>${esc(entry)}</li>`).join("")}
+                    </ul>
+                  </article>
+                `).join("")}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function buildCopy(slide) {
+        if (slide.type === "frentes" && slide.frentes) return renderFrentes(slide);
+        if (slide.type === "methodology") return renderMethodology(slide);
+        if (slide.type === "squad") return renderSquad(slide);
+        const parts = [];
+        if (slide.eyebrow) parts.push(`<p class="eyebrow">${esc(slide.eyebrow)}</p>`);
+        parts.push(renderHeading(slide));
+        if (slide.text) parts.push(`<p>${esc(slide.text)}</p>`);
+        if (slide.type === "index" && slide.items) parts.push(renderIndex(slide.items));
+        if (slide.type === "manifesto" && slide.pillars) parts.push(renderPillars(slide.pillars));
+        if (slide.type === "stats" && slide.stats) parts.push(renderStats(slide.stats));
+        if (slide.type === "gallery" && slide.items) parts.push(renderGallery(slide.items));
+        if (slide.type === "process" && slide.steps) parts.push(renderSteps(slide.steps));
+        if (slide.type === "content" && slide.items) parts.push(renderContentList(slide.items));
+        if (slide.type === "pricing" && slide.items) parts.push(renderPricing(slide.items));
+        if (slide.meta) parts.push(`<p class="meta-line">${esc(slide.meta)}</p>`);
+        return `<div class="copy" data-type="${slide.type}">${parts.join("")}</div>`;
+      }
+
+      function buildSlides() {
+        deckEl.innerHTML = SLIDES.map((slide, i) => `<section class="slide" data-align="${slide.align || "left"}" data-type="${slide.type}" data-index="${i}" id="${slide.id}">${buildCopy(slide)}</section>`).join("");
+        syncFrentesSystems();
+        syncMethodologySystems();
+      }
+
+      function slideEls() {
+        return [...deckEl.querySelectorAll(".slide")];
+      }
+
+      function buildDots() {
+        dotsEl.innerHTML = SLIDES.map((slide, i) => `<button class="deck-dot" data-go="${i}" aria-label="Ir para slide ${i + 1}: ${esc(slide.eyebrow || slide.title || slide.id)}"></button>`).join("");
+        counterTotal.textContent = String(SLIDES.length).padStart(2, "0");
+      }
+
+      function go(index, { fromHash = false } = {}) {
+        if (previewLocked && !initialGo) return;
+        initialGo = false;
+        current = clamp(index, 0, SLIDES.length - 1);
+        slideEls().forEach((el, i) => el.classList.toggle("is-active", i === current));
+        setState(SLIDES[current].state);
+        [...dotsEl.children].forEach((dot, i) => {
+          dot.classList.toggle("is-active", i === current);
+          // Mostrar apenas o ponto atual, anterior e próximo
+          dot.style.display = (i >= current - 1 && i <= current + 1) ? "" : "none";
+        });
+        counterCurrent.textContent = String(current + 1).padStart(2, "0");
+        prevBtn.disabled = current === 0;
+        nextBtn.disabled = current === SLIDES.length - 1;
+        navPrev.hidden = current === 0;
+        navNext.hidden = current === SLIDES.length - 1;
+
+        if (!fromHash) {
+          const hash = "#" + (current + 1);
+          if (location.hash !== hash) history.replaceState(null, "", hash);
+        }
+
+        // Reset scroll position and indicators on slide change
+        window.setTimeout(() => {
+          const activeSlide = document.querySelector(".slide.is-active");
+          if (activeSlide) {
+            const scroller = activeSlide.querySelector(".content-scroll-inner");
+            if (scroller) {
+              scroller.scrollTop = 0;
+              updateScrollIndicator(scroller);
+            }
+          }
+        }, 50);
+      }
+
+      function step(dir) {
+        if (locked || orientationLocked) return;
+        const next = current + dir;
+        if (next < 0 || next >= SLIDES.length) return;
+        locked = true;
+        go(next);
+        window.setTimeout(() => {
+          locked = false;
+        }, 520);
+      }
+
+      function readHash() {
+        const n = parseInt((location.hash || "").replace("#", ""), 10);
+        return Number.isFinite(n) ? clamp(n - 1, 0, SLIDES.length - 1) : 0;
+      }
+
+      prevBtn.addEventListener("click", () => step(-1));
+      nextBtn.addEventListener("click", () => step(1));
+      navPrev.addEventListener("click", () => step(-1));
+      navNext.addEventListener("click", () => step(1));
+
+      function getActiveScroller() {
+        const activeSlide = document.querySelector(".slide.is-active");
+        if (!activeSlide) return null;
+        return activeSlide.querySelector(".content-scroll-inner");
+      }
+
+      function updateScrollIndicator(scroller) {
+        if (!scroller) return;
+        const wrap = scroller.closest(".content-scroll-wrap");
+        if (!wrap) return;
+        const fade = wrap.querySelector(".content-scroll-fade");
+        const more = wrap.querySelector(".content-scroll-more");
+        const thumb = wrap.querySelector(".content-scroll-thumb");
+        const track = wrap.querySelector(".content-scroll-track");
+
+        const scrollable = scroller.scrollHeight > scroller.clientHeight + 4;
+        const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4;
+
+        if (fade) fade.classList.toggle("is-hidden", atBottom);
+        if (more) more.classList.toggle("is-hidden", atBottom);
+
+        // Update custom scrollbar thumb
+        if (thumb && track) {
+          if (!scrollable) {
+            thumb.classList.add("is-hidden");
+          } else {
+            thumb.classList.remove("is-hidden");
+            const trackH = track.clientHeight;
+            const ratio = scroller.clientHeight / scroller.scrollHeight;
+            const thumbH = Math.max(trackH * ratio, 32);
+            const maxTop = trackH - thumbH;
+            const scrollRatio = scroller.scrollTop / (scroller.scrollHeight - scroller.clientHeight);
+            thumb.style.height = thumbH + "px";
+            thumb.style.top = (scrollRatio * maxTop) + "px";
+          }
+        }
+      }
+
+      function resetScrollIndicators() {
+        document.querySelectorAll(".content-scroll-inner").forEach(s => {
+          s.scrollTop = 0;
+          updateScrollIndicator(s);
+        });
+      }
+
+      window.addEventListener("wheel", (e) => {
+        if (previewLocked) {
+          e.preventDefault();
+          return;
+        }
+        if (Math.abs(e.deltaY) < 18) return;
+        const scroller = getActiveScroller();
+        if (scroller) {
+          const scrollable = scroller.scrollHeight > scroller.clientHeight;
+          const atTop = scroller.scrollTop <= 0;
+          const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 4;
+          if (scrollable && !(e.deltaY < 0 && atTop) && !(e.deltaY > 0 && atBottom)) {
+            scroller.scrollBy({ top: e.deltaY * 1.4, behavior: "smooth" });
+            e.preventDefault();
+            return;
+          }
+        }
+        e.preventDefault();
+        step(e.deltaY > 0 ? 1 : -1);
+      }, { passive: false });
+
+      window.addEventListener("keydown", (e) => {
+        if (previewLocked) {
+          if (["ArrowRight", "PageDown", " ", "ArrowLeft", "PageUp", "Home", "End"].includes(e.key)) {
+            e.preventDefault();
+          }
+          return;
+        }
+        if (orientationLocked) return;
+        if (["ArrowRight", "PageDown", " "].includes(e.key)) {
+          e.preventDefault();
+          step(1);
+        } else if (["ArrowLeft", "PageUp"].includes(e.key)) {
+          e.preventDefault();
+          step(-1);
+        } else if (e.key === "Home") {
+          e.preventDefault();
+          go(0);
+        } else if (e.key === "End") {
+          e.preventDefault();
+          go(SLIDES.length - 1);
+        }
+      });
+
+      let touchStartX = 0;
+      let touchStartY = 0;
+
+      window.addEventListener("touchstart", (e) => {
+        if (!e.changedTouches[0]) return;
+        touchStartX = e.changedTouches[0].clientX;
+        touchStartY = e.changedTouches[0].clientY;
+      }, { passive: true });
+
+      window.addEventListener("touchend", (e) => {
+        if (!e.changedTouches[0]) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        const ax = Math.abs(dx);
+        const ay = Math.abs(dy);
+        if (Math.max(ax, ay) < 48) return;
+        if (ax > ay) step(dx < 0 ? 1 : -1);
+        else step(dy < 0 ? 1 : -1);
+      }, { passive: true });
+
+      dotsEl.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-go]");
+        if (!btn || orientationLocked) return;
+        go(parseInt(btn.getAttribute("data-go"), 10));
+      });
+
+      function handleViewportChange() {
+        syncOrientationLock();
+        resize();
+        setState(activeState);
+      }
+
+      window.addEventListener("hashchange", () => go(readHash(), { fromHash: true }));
+      window.addEventListener("resize", handleViewportChange);
+
+      if (typeof orientationMedia.addEventListener === "function") {
+        orientationMedia.addEventListener("change", handleViewportChange);
+      } else if (typeof orientationMedia.addListener === "function") {
+        orientationMedia.addListener(handleViewportChange);
+      }
+
+      syncOrientationLock();
+      buildSlides();
+      buildDots();
+      resize();
+
+      // Setup scroll indicators for all content scrollers
+      document.querySelectorAll(".content-scroll-inner").forEach(scroller => {
+        updateScrollIndicator(scroller);
+        scroller.addEventListener("scroll", () => updateScrollIndicator(scroller));
+      });
+
+      // Button click → auto-scroll down
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest(".content-scroll-more-btn");
+        if (!btn) return;
+        const wrap = btn.closest(".content-scroll-wrap");
+        if (!wrap) return;
+        const scroller = wrap.querySelector(".content-scroll-inner");
+        if (!scroller) return;
+        scroller.scrollBy({ top: scroller.clientHeight * 0.72, behavior: "smooth" });
+      });
+      setState("cover");
+      go(readHash(), { fromHash: true });
+      requestAnimationFrame(render);
+
+      // Lock UI Logic
+      const lockOverlay = document.getElementById("previewLockOverlay");
+      const lockForm = document.getElementById("previewLockForm");
+      const passwordInput = document.getElementById("previewPassword");
+      const errorMsg = document.getElementById("previewErrorMsg");
+      const lockCard = lockOverlay.querySelector(".preview-lock-card");
+
+      if (!previewLocked) {
+        lockOverlay.style.display = "none";
+      } else {
+        setTimeout(() => {
+          passwordInput.focus();
+        }, 150);
+
+        lockForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          if (passwordInput.value === "tecnisa234") {
+            previewLocked = false;
+            sessionStorage.setItem("deck_unlocked", "true");
+            lockOverlay.classList.add("is-hidden");
+            errorMsg.classList.remove("is-visible");
+            go(readHash());
+            setTimeout(() => {
+              lockOverlay.style.display = "none";
+            }, 500);
+          } else {
+            errorMsg.classList.add("is-visible");
+            lockCard.classList.add("shake");
+            passwordInput.value = "";
+            passwordInput.focus();
+            setTimeout(() => {
+              lockCard.classList.remove("shake");
+            }, 350);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
