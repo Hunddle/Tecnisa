@@ -3097,7 +3097,7 @@
         dpr = Math.min(window.devicePixelRatio || 1, 2);
         width = Math.max(1, rect.width);
         height = Math.max(1, rect.height);
-        const baseScale = Math.min(width / 1920, height / 1080);
+        const baseScale = Math.min(width / 1440, height / 810);
         const layoutScale = clamp(baseScale, 0.42, 1);
         const titleScale = clamp(baseScale, 0.42, 1);
         const bodyScale = clamp(baseScale, 0.48, 1);
