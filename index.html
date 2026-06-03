@@ -1995,6 +1995,13 @@
     <button class="deck-arrow deck-arrow--prev" id="prev" aria-label="Slide anterior">&#8249;</button>
     <button class="deck-arrow deck-arrow--next" id="next" aria-label="Próximo slide">&#8250;</button>
 
+    <div id="zoomResetHint" style="position:absolute;top:clamp(1rem,2.5vh,1.8rem);right:clamp(1rem,2.5vw,1.8rem);z-index:50;opacity:0;transition:opacity 0.4s ease;pointer-events:none;">
+      <div style="display:inline-flex;align-items:center;gap:0.45rem;padding:0.35rem 0.85rem;border:1px solid rgba(244,241,236,0.22);border-radius:999rem;background:rgba(5,6,8,0.72);backdrop-filter:blur(0.5rem);font-family:'IBM Plex Mono',monospace;font-size:0.44rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,241,236,0.55);">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 1.5A3.5 3.5 0 1 1 1.5 5"/><polyline points="1.5,2 1.5,5 4.5,5"/></svg>
+        duplo clique para resetar zoom
+      </div>
+    </div>
+
     <div class="deck-foot">
       <div class="deck-dots" id="dots"></div>
       <div class="deck-nav">
@@ -4396,11 +4403,32 @@
         });
       }
 
+      // ── Zoom state ──────────────────────────────────────────────
+      let zoomLevel = 1;
+      const ZOOM_MIN = 0.5, ZOOM_MAX = 4, ZOOM_STEP = 0.12;
+
+      function applyZoom() {
+        shellEl.style.transformOrigin = "center center";
+        shellEl.style.transform = zoomLevel === 1 ? "" : `scale(${zoomLevel})`;
+        // show/hide reset hint
+        const hint = document.getElementById("zoomResetHint");
+        if (hint) hint.style.opacity = zoomLevel !== 1 ? "1" : "0";
+      }
+
+      // reset on double-click / double-tap
+      shellEl.addEventListener("dblclick", () => { zoomLevel = 1; applyZoom(); });
+
       window.addEventListener("wheel", (e) => {
-        if (previewLocked) {
+        if (previewLocked) { e.preventDefault(); return; }
+
+        // Ctrl + scroll → zoom
+        if (e.ctrlKey || e.metaKey) {
           e.preventDefault();
+          zoomLevel = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomLevel - e.deltaY * 0.003));
+          applyZoom();
           return;
         }
+
         if (Math.abs(e.deltaY) < 18) return;
         const scroller = getActiveScroller();
         if (scroller) {
@@ -4416,6 +4444,33 @@
         e.preventDefault();
         step(e.deltaY > 0 ? 1 : -1);
       }, { passive: false });
+
+      // ── Pinch-to-zoom (mobile) ───────────────────────────────────
+      let pinchStartDist = null, pinchStartZoom = 1;
+
+      function pinchDist(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.hypot(dx, dy);
+      }
+
+      window.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 2) {
+          pinchStartDist = pinchDist(e.touches);
+          pinchStartZoom = zoomLevel;
+        }
+      }, { passive: true });
+
+      window.addEventListener("touchmove", (e) => {
+        if (e.touches.length === 2 && pinchStartDist) {
+          e.preventDefault();
+          const ratio = pinchDist(e.touches) / pinchStartDist;
+          zoomLevel = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, pinchStartZoom * ratio));
+          applyZoom();
+        }
+      }, { passive: false });
+
+      window.addEventListener("touchend", () => { pinchStartDist = null; }, { passive: true });
 
       window.addEventListener("keydown", (e) => {
         if (previewLocked) {
